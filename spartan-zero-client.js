@@ -3,10 +3,10 @@
 const { Client, utils } = require("spartan-gold");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
-const {ZeroCoinBlockchain} = require('./zero-coin-blockchain.js');
-const {ZeroCoin} = require("./zero-coin.js");
-const ZeroCoinUtils = require("./zero-coin-utils.js");
-const {TranMint} = require("./zero-coin-tran-mint.js");
+const {SpartanZeroBlockchain} = require('./spartan-zero-blockchain.js');
+const {SpartanZero} = require("./spartan-zero.js");
+const SpartanZeroUtils = require("./spartan-zero-utils.js");
+const {TranMint} = require("./spartan-zero-tran-mint.js");
 
 
 //TODO: add functionality to mint new coins after initializing blockchain makeGenesis so that
@@ -14,9 +14,9 @@ const {TranMint} = require("./zero-coin-tran-mint.js");
 // used to determine whether the client has enough funds to mint a coin of specified value and hence
 // avoiding generation of coins out of thin air 
 /**
- * A ZeroCoinClient is capable of minting coins and sending/receiving minted coins
+ * A SpartanZeroClient is capable of minting coins and sending/receiving minted coins
  */
-class ZeroCoinClient extends Client {
+class SpartanZeroClient extends Client {
 
   //CITE: spartan-gold's Client class description 
   /**
@@ -35,7 +35,7 @@ class ZeroCoinClient extends Client {
     super({name, net, startingBlock});
 
     this.coins = {};
-    this.on(ZeroCoinBlockchain.PROOF_FOUND, this.receiveBlock);
+    this.on(SpartanZeroBlockchain.PROOF_FOUND, this.receiveBlock);
 
   }
 
@@ -57,17 +57,17 @@ class ZeroCoinClient extends Client {
     //     throw new Error(`Requested ${totalPayments}, but account only has ${this.availableGold}.`);
     //     }
     
-        let rho = ZeroCoinUtils.gen();
-        let r = ZeroCoinUtils.gen();
+        let rho = SpartanZeroUtils.gen();
+        let r = SpartanZeroUtils.gen();
         //let bitArrR = r.toString(2);
         //console.log("Actual r: "+r);
         //console.log("bitarray r: "+bitArrR);
-        let s = ZeroCoinUtils.gen();
+        let s = SpartanZeroUtils.gen();
 
         let k = utils.hash(this.keyPair.public + r + rho+'');
         let cm = utils.hash(value + k + s+'');
 
-        let mintedCoin = new ZeroCoin(this.address, value, rho, r, s, cm);
+        let mintedCoin = new SpartanZero(this.address, value, rho, r, s, cm);
 
         //this.coins.push(mintedCoin);
         this.coins[cm] = mintedCoin;
@@ -103,7 +103,7 @@ postMintTransaction(mintTxData) {
     //HIGHLIGHTS: nonce isn't utilized
     //this.nonce++;
 
-    this.net.broadcast(ZeroCoinBlockchain.POST_TRANSACTION, tx);
+    this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
 
     return tx;
     }
@@ -146,7 +146,7 @@ postMintTransaction(mintTxData) {
   receiveBlock(block) {
     // If the block is a string, then deserialize it.
     //console.log("received bloc triggered for: "+this.name);
-    block = ZeroCoinBlockchain.deserializeBlock(block);
+    block = SpartanZeroBlockchain.deserializeBlock(block);
 
     // Ignore the block if it has been received previously.
     if (this.blocks.has(block.id)) return null;
@@ -239,4 +239,4 @@ postMintTransaction(mintTxData) {
 
 }
 
-module.exports.ZeroCoinClient = ZeroCoinClient;
+module.exports.SpartanZeroClient = SpartanZeroClient;

@@ -3,7 +3,7 @@
 const { Block, Blockchain,utils } = require('spartan-gold');
 
 //HIGHLIGHTS: added cmLedger and snLedger
-class ZeroCoinBlock extends Block{
+class SpartanZeroBlock extends Block{
 
   constructor(prevBlock){
       super();
@@ -68,4 +68,4 @@ class ZeroCoinBlock extends Block{
 
 }
 
-module.exports.ZeroCoinBlock = ZeroCoinBlock;
+module.exports.SpartanZeroBlock = SpartanZeroBlock;

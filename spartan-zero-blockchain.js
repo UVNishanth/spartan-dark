@@ -25,11 +25,11 @@ const CONFIRMED_DEPTH = 6;
 
 const { Blockchain} = require ('spartan-gold');
 
-const {ZeroCoinBlock} = require('./zero-coin-block');
+const {SpartanZeroBlock} = require('./spartan-zero-block');
 
 
 //HIGHLIGHTS: setting new TransactionClasses
-class ZeroCoinBlockchain extends Blockchain{
+class SpartanZeroBlockchain extends Blockchain{
   static makeGenesis(cfg) {
 
     
@@ -77,7 +77,7 @@ class ZeroCoinBlockchain extends Blockchain{
    *
    * @param {Object} o - An object representing a block, but not necessarily an instance of Block.
    *
-   * @returns {ZeroCoinBlock}
+   * @returns {SpartanZeroBlock}
    */
   static deserializeBlock(o) {
     if (o instanceof Blockchain.cfg.blockClass) { console.log("already a block");return o; }
@@ -114,7 +114,7 @@ class ZeroCoinBlockchain extends Blockchain{
    *
    * @param {Object} o - An object representing a transaction, but not necessarily an instance of transaction.
    *
-   * @returns {ZeroCoinTransaction}
+   * @returns {SpartanZeroTransaction}
    */
   static deserializeTransaction(o) {
     if (o instanceof Blockchain.cfg.mintTransactionClass || 
@@ -128,4 +128,4 @@ class ZeroCoinBlockchain extends Blockchain{
   }   
 }
 
-module.exports.ZeroCoinBlockchain = ZeroCoinBlockchain; 
+module.exports.SpartanZeroBlockchain = SpartanZeroBlockchain; 
