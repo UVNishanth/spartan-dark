@@ -1,0 +1,24 @@
+{
+  "name": "spartan-in-the-dark",
+  "version": "1.0.0",
+  "description": "An anonymous transaction system à la Zcash, built on top of spartan-gold",
+  "main": "driver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UVNishanth/spartan-in-the-dark.git"
+  },
+  "keywords": [
+    "blockchain",
+    "zero-knowledge",
+    "zk-snark"
+  ],
+  "author": "UVNishanth",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UVNishanth/spartan-in-the-dark/issues"
+  },
+  "homepage": "https://github.com/UVNishanth/spartan-in-the-dark#readme"
+}
