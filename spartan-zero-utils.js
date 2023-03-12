@@ -3,7 +3,7 @@
 const aleaRNGFactory = require("number-generator/lib/aleaRNGFactory");
 
 const { utils } = require("spartan-gold");
-//const { SpartanZero } = require("./spartan-zero");
+const { SpartanZero } = require("./spartan-zero");
 //const { SpartanZeroClient } = require("./spartan-zero-client");
 
 // creating constansts for prf types

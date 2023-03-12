@@ -34,7 +34,8 @@ class SpartanZeroClient extends Client {
   constructor({name, net, startingBlock} = {}) {
     super({name, net, startingBlock});
 
-    this.coins = {};
+    //DESIGNDEC: changing dict of cm -> coin to list of tuples (value, coin) coz list easier to sort than dict
+    this.spartanZeroes = [];
     this.on(SpartanZeroBlockchain.PROOF_FOUND, this.receiveBlock);
 
   }
@@ -57,29 +58,47 @@ class SpartanZeroClient extends Client {
     //     throw new Error(`Requested ${totalPayments}, but account only has ${this.availableGold}.`);
     //     }
     
-        let rho = SpartanZeroUtils.gen();
-        let r = SpartanZeroUtils.gen();
-        //let bitArrR = r.toString(2);
-        //console.log("Actual r: "+r);
-        //console.log("bitarray r: "+bitArrR);
-        let s = SpartanZeroUtils.gen();
+        // let rho = SpartanZeroUtils.gen();
+        // let r = SpartanZeroUtils.gen();
+        // //let bitArrR = r.toString(2);
+        // //console.log("Actual r: "+r);
+        // //console.log("bitarray r: "+bitArrR);
+        // let s = SpartanZeroUtils.gen();
 
-        let k = utils.hash(this.keyPair.public + r + rho+'');
-        let cm = utils.hash(value + k + s+'');
+        // let k = utils.hash(this.keyPair.public + r + rho+'');
+        // let cm = utils.hash(value + k + s+'');
 
-        let mintedCoin = new SpartanZero(this.address, value, rho, r, s, cm);
+        // let mintedCoin = new SpartanZero(this.address, value, rho, r, s, cm);
 
-        //this.coins.push(mintedCoin);
-        this.coins[cm] = mintedCoin;
-        console.log("CM for newly minted coin: "+cm);
+        // //this.coins.push(mintedCoin);
+        // this.coins[cm] = mintedCoin;
+        // console.log("CM for newly minted coin: "+cm);
 
+        // // Create and broadcast the transaction.
+        // return this.postMintTransaction({
+        // cm: cm,
+        // v: value,
+        // k: k,
+        // s: s
+        // });
+        let mintedCoin = SpartanZeroUtils.createNewSpartanZero(this, value);
+        let cm = mintedCoin.cm;
+    
+        //this.spartanZeroes.push(mintedCoin);
+        //BETTERCODE: currently sorting using comparator after adding. Change so that element gets added into a sorted list and sorts itself during insertion
+        
+        this.spartanZeroes.push([value, mintedCoin]);
+        this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
+        console.log("CM for newly minted coin: " + cm);
+    
         // Create and broadcast the transaction.
         return this.postMintTransaction({
-        cm: cm,
-        v: value,
-        k: k,
-        s: s
+          cm: mintedCoin.cm,
+          v: mintedCoin.v,
+          k: mintedCoin.k,
+          s: mintedCoin.s,
         });
+    
     }
 
   /**
@@ -207,9 +226,9 @@ postMintTransaction(mintTxData) {
    */
   confirmOwnedCoins(){
     let lastBlock = this.lastConfirmedBlock;
-    for(const [cm, coin] of Object.entries(this.coins)){
-      if(!lastBlock.cmLedger.includes(cm)){
-        delete this.coins[cm];
+    for(const [v, coin] of this.spartanZeroes){
+      if(!lastBlock.cmLedger.includes(coin.cm)){
+        delete this.spartanZeroes[coin.cm];
       }
     }
   }
@@ -228,7 +247,7 @@ postMintTransaction(mintTxData) {
     //ASK: if coins should be updated after every lastconfirmedBlock update and if yes,
     // where is lastConfirmed getting updated.
     let balance = 0;
-    for (let [cm,coin] of Object.entries(this.coins)){
+    for(const [v, coin] of this.spartanZeroes){
       balance += coin.v;
       // console.log("Value of coin is: "+coin.v);
       // this.balance += coin.v;

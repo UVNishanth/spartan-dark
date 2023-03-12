@@ -18,7 +18,6 @@ class SpartanZeroBlock extends Block{
 
       // TODO: using list for storing commits for now. change to merkle tree later
       this.cmLedger = prevBlock ? prevBlock.cmLedger : [];
-      console.log("New Block cmLedger: ");
       this.cmLedger.forEach((x) => {
         console.log(x);
       });

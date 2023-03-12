@@ -73,7 +73,6 @@ module.exports = class SpartanZeroMiner extends SpartanZeroClient {
     });
     this.transactions.clear();
 
-    console.log("cmLedger after startNewSearch: ");
     this.currentBlock.cmLedger.forEach((x)=>{
       console.log(x);
     });
