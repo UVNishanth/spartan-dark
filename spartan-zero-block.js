@@ -66,6 +66,13 @@ class SpartanZeroBlock extends Block{
 
   }
 
+  toJSON() {
+    let o = super.toJSON();
+    o.cmLedger = this.cmLedger;
+    o.snLedger = this.snLedger;
+    return o;
+  }
+
 }
 
 module.exports.SpartanZeroBlock = SpartanZeroBlock;
