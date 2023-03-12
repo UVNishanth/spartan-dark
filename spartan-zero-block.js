@@ -2,6 +2,8 @@
 
 const { Block, Blockchain,utils } = require('spartan-gold');
 
+const SpartanZeroUtils = require("./spartan-zero-utils");
+
 //HIGHLIGHTS: added cmLedger and snLedger
 class SpartanZeroBlock extends Block{
 
@@ -56,7 +58,7 @@ class SpartanZeroBlock extends Block{
       let s = tx.s;
       let cm = tx.cm;
 
-      let cm0 = utils.hash(v + k + s+'');
+      let cm0 = SpartanZeroUtils.comm(v, k, s);
       if (cm0 !=  cm){
         return false;
       }
