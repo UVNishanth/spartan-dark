@@ -3,22 +3,22 @@
 const { Client, utils } = require("spartan-gold");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
-const {SpartanZeroBlockchain} = require('./spartan-zero-blockchain.js');
-const {SpartanZero} = require("./spartan-zero.js");
+const { SpartanZeroBlockchain } = require("./spartan-zero-blockchain.js");
+const { SpartanZero } = require("./spartan-zero.js");
 const SpartanZeroUtils = require("./spartan-zero-utils.js");
-const {TranMint} = require("./spartan-zero-tran-mint.js");
+const { TranMint } = require("./spartan-zero-tran-mint.js");
+
 
 
 //TODO: add functionality to mint new coins after initializing blockchain makeGenesis so that
 // the associated balance is converted into coins which the client cna then spend. Which can then be
 // used to determine whether the client has enough funds to mint a coin of specified value and hence
-// avoiding generation of coins out of thin air 
+// avoiding generation of coins out of thin air
 /**
  * A SpartanZeroClient is capable of minting coins and sending/receiving minted coins
  */
 class SpartanZeroClient extends Client {
-
-  //CITE: spartan-gold's Client class description 
+  //CITE: spartan-gold's Client class description
   /**
    * The net object determines how the client communicates
    * with other entities in the system. (This approach allows us to
@@ -31,88 +31,64 @@ class SpartanZeroClient extends Client {
    *    to send messages to all miners and clients.
    * @param {Block} [obj.startingBlock] - The starting point of the blockchain for the client.
    */
-  constructor({name, net, startingBlock} = {}) {
-    super({name, net, startingBlock});
+  constructor({ name, net, startingBlock } = {}) {
+    super({ name, net, startingBlock });
 
     //DESIGNDEC: changing dict of cm -> coin to list of tuples (value, coin) coz list easier to sort than dict
     this.spartanZeroes = [];
     this.on(SpartanZeroBlockchain.PROOF_FOUND, this.receiveBlock);
 
+    // to maintain public-private keys relationship even when new address is generated
+    this.addressBindings = {};
+
+    this.generateNewAddress();
   }
 
-
   // ASK: Make sure the client has enough gold.
-  // Cannot calculate as you cannot update availableGold as 
+  // Cannot calculate as you cannot update availableGold as
   // u don't know whether ur mint transaction will be accepted
   // ask prof how u can validate if client has enough funds
   /**
-   * User can create new coins of desired value and let everyone know about this by registering 
+   * User can create new coins of desired value and let everyone know about this by registering
    * a correpsonding TranMint
-   * 
+   *
    * @param {number} value - The value of coin that the user wants to mint
    * @returns {TranMint} - The generated mint transaction
    */
-  
+
   mint(value) {
-    // if (value > this.availableGold) {
-    //     throw new Error(`Requested ${totalPayments}, but account only has ${this.availableGold}.`);
-    //     }
-    
-        // let rho = SpartanZeroUtils.gen();
-        // let r = SpartanZeroUtils.gen();
-        // //let bitArrR = r.toString(2);
-        // //console.log("Actual r: "+r);
-        // //console.log("bitarray r: "+bitArrR);
-        // let s = SpartanZeroUtils.gen();
+    let [k, mintedCoin] = SpartanZeroUtils.createNewSpartanZero(this, value);
+    let cm = mintedCoin.cm;
 
-        // let k = utils.hash(this.keyPair.public + r + rho+'');
-        // let cm = utils.hash(value + k + s+'');
+    //this.spartanZeroes.push(mintedCoin);
+    //BETTERCODE: currently sorting using comparator after adding. Change so that element gets added into a sorted list and sorts itself during insertion
 
-        // let mintedCoin = new SpartanZero(this.address, value, rho, r, s, cm);
+    this.spartanZeroes.push([value, mintedCoin]);
+    this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
+    console.log("CM for newly minted coin: " + cm);
 
-        // //this.coins.push(mintedCoin);
-        // this.coins[cm] = mintedCoin;
-        // console.log("CM for newly minted coin: "+cm);
-
-        // // Create and broadcast the transaction.
-        // return this.postMintTransaction({
-        // cm: cm,
-        // v: value,
-        // k: k,
-        // s: s
-        // });
-        let mintedCoin = SpartanZeroUtils.createNewSpartanZero(this, value);
-        let cm = mintedCoin.cm;
-    
-        //this.spartanZeroes.push(mintedCoin);
-        //BETTERCODE: currently sorting using comparator after adding. Change so that element gets added into a sorted list and sorts itself during insertion
-        
-        this.spartanZeroes.push([value, mintedCoin]);
-        this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
-        console.log("CM for newly minted coin: " + cm);
-    
-        // Create and broadcast the transaction.
-        return this.postMintTransaction({
-          cm: mintedCoin.cm,
-          v: mintedCoin.v,
-          k: mintedCoin.k,
-          s: mintedCoin.s,
-        });
-    
-    }
+    // Create and broadcast the transaction.
+    return this.postMintTransaction({
+      cm: mintedCoin.cm,
+      v: mintedCoin.v,
+      hashv : mintedCoin.hashedV,
+      k: k,
+      s: mintedCoin.s,
+    });
+  }
 
   /**
    * Broadcasts a mint transaction from the client.  No validation is performed,
    * so the transaction might be rejected by other miners.
-   * 
-   * 
+   *
+   *
    * @param {Object} mintTxData - The key-value pairs of the mint transaction.
-   * 
+   *
    * @returns {TranMint} - The generated mint transaction
    */
-postMintTransaction(mintTxData) {
+  postMintTransaction(mintTxData) {
     let tx = new TranMint(mintTxData);
-    
+
     //HIGHLIGHTS: Don't need to sign transaction unlike in original
     //tx.sign(this.keyPair.private);
 
@@ -125,26 +101,75 @@ postMintTransaction(mintTxData) {
     this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
 
     return tx;
+  }
+
+  spend(receiver, amount) {
+    let currBalance = this.getBalance();
+    if (currBalance < amount) {
+      throw new Error(
+        "Not enough balance to pay. Curr Balance: " + currBalance
+      );
     }
-  
+
+    let oldSpartanZero = SpartanZeroUtils.findAppropSpartanZero(
+      this.spartanZeroes,
+      amount
+    );
+    
+    rhoOld = oldSpartanZero.rho;
+    // get addrSK of old coin
+    let addrSKOld = this.addressBindings[oldSpartanZero.addrPK];
+    let snOld = SpartanZeroUtils.prf(
+      rhoOld,
+      SpartanZeroUtils.SN,
+      addrSKOld
+    );
+    let recvAddr = receiver.address;
+
+    let coinToSpend = SpartanZeroUtils.createNewSpartanZero(recvAddr, value);
+    // remaining amount spender needs to send back to themselves
+    let coinChange = SpartanZeroUtils.createNewSpartanZero(recvAddr, oldSpartanZero.v - value);
+
+    const { pkSig, skSig } = SpartanZeroUtils.generateKeypair();
+    let hSig = SpartanZeroUtils.hash(pkSig);
+    let h_ = SpartanZeroUtils.prf(hSig, SpartanZeroUtils.PK, addrSKOld);
+    let circuitInput = {
+      snOld : snOld,
+      cmNew1 : coinToSpend.cm,
+      cmNew2 : coinChange.cm,
+      hSig : hSig,
+      h_ : h_,
+      hashAddrSKOld : SpartanZeroUtils.hash(addrSKOld),
+      cOldRho : oldSpartanZero.rho,
+      cOldValue : oldSpartanZero.v,
+      cOldK : oldSpartanZero.k,
+      cOldS : oldSpartanZero.s,
+      cNew1Value : coinToSpend.v,
+      cNew1K : coinToSpend.k,
+      cNew1S : coinToSpend.s,
+      cNew2Value : coinChange.v,
+      cNew2K : coinChange.k,
+      cNew2S : coinChange.s,
+
+    };
+
+  }
+
   //TODO: implement
   //ASK: when to trigger
   /**
    * Client needs to periodically perform a recieveTransaction in in order to look for due payments.
    * Does not post anything. Just scours the transactionList to look for a new transaction that belong
-   * to them. 
-   * 
-   * 
-   * 
-   * @param 
-   * 
+   * to them.
+   *
+   *
+   *
+   * @param
+   *
    * @returns
    */
-   async receiveTransaction() {
-  
-     }
+  async receiveTransaction() {}
 
-  
   //HACK: could have used. but as zk-spartan-cash has 2 transaction classes,
   // the cfg.transactionClass in Blockchain class is not which is reqd for parent method
   /**
@@ -218,44 +243,71 @@ postMintTransaction(mintTxData) {
   /**
    * Used to confirm coins owned by client as we update the cmLedger after minting and not after
    * validation by miners. So we need to check the last confirmed block again to see whether
-   * our mint transaction was validated and in turn to check whether our minted coins are valid    
+   * our mint transaction was validated and in turn to check whether our minted coins are valid
    *
    * @param {void}
    *
    * @returns {void}
    */
-  confirmOwnedCoins(){
+  confirmOwnedCoins() {
     let lastBlock = this.lastConfirmedBlock;
-    for(const [v, coin] of this.spartanZeroes){
-      if(!lastBlock.cmLedger.includes(coin.cm)){
-        delete this.spartanZeroes[coin.cm];
-      }
-    }
+    //console.log("current list: ");
+    //console.log(this.spartanZeroes);
+    // for (const [v, coin] of this.spartanZeroes) {
+    //   if (!lastBlock.cmLedger.includes(coin.cm)) {
+    //     console.log("Coin "+ coin.cm+" not present. Removing");
+    //     //delete this.spartanZeroes[coin.cm];
+    //     let index = this.spartanZeroes.indexOf([v, coin]);
+    //     if (index == this.spartanZeroes.length){
+    //       this.spartanZeroes.pop();
+    //     }
+    //     else if (index == 0){
+    //       delete this.spartanZeroes[0];
+    //     }
+    //     else{
+    //       this.spartanZeroes.splice(index, 1);
+    //     }
+    //   }
+    // }
+    // console.log("before check: "+this.spartanZeroes);
+    this.spartanZeroes = this.spartanZeroes.filter((entry) =>{
+      let coin = entry[1];
+      return lastBlock.cmLedger.includes(coin.cm);
+    });
+    //console.log("after check: "+this.spartanZeroes);
+
   }
 
   /**
    * In order to demonstrate our transactions are executing as intended, we provide this service to
-   * verify our results. 
+   * verify our results.
    *
    * @param {void}
    *
    * @returns {number} - The client balance
    */
-  getBalance(){
+  getBalance() {
     this.confirmOwnedCoins();
     // Adding balance just to show that transaction is occurring as intended. shown using getBalance fn
     //ASK: if coins should be updated after every lastconfirmedBlock update and if yes,
     // where is lastConfirmed getting updated.
+    //console.log("Here");
     let balance = 0;
-    for(const [v, coin] of this.spartanZeroes){
+    for (const [v, coin] of this.spartanZeroes) {
       balance += coin.v;
       // console.log("Value of coin is: "+coin.v);
       // this.balance += coin.v;
     }
+    //console.log("My balance is "+balance);
     return balance;
-
   }
 
+  generateNewAddress(){
+    this.keyPair = SpartanZeroUtils.generateKeypair();
+    this.address = SpartanZeroUtils.calcAddress(this.keyPair.public);
+    this.addrPK = this.keyPair.public;
+    this.addressBindings[this.keyPair.public] = this.keyPair.private;
+  }
 }
 
 module.exports.SpartanZeroClient = SpartanZeroClient;

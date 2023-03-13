@@ -74,7 +74,9 @@ mickey.initialize();
 //Mint new coins
 console.log("Charlie is minting coin of value 2");
 charlie.mint(2);
+console.log("Alice is minting coin of value 2");
 alice.mint(7);
+console.log("Charlie is minting coin of value 9");
 charlie.mint(9);
 
 setTimeout(() => {
@@ -90,6 +92,8 @@ setTimeout(() => {
 //   console.log("Transaction List: ");
   console.log("Alice now has coins of total value: "+alice.getBalance());
   console.log("Charlie now has coins of total value: "+charlie.getBalance());
+  //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
+  //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
 }, 1000);
 

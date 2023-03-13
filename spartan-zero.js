@@ -2,6 +2,8 @@
 
 "use strict";
 
+const { utils } = require("spartan-gold");
+
 /* Basecoin for zk-spartan-cash.
 Holds following info:
 cm = coin commitment (hash)
@@ -13,9 +15,11 @@ r = trapdoor generated for the coin. Also, the witness that the spender has to p
 
 
 class SpartanZero {
-    constructor(addrPK, v, rho, r, s, cm){
+    constructor(addrPK, v, hashedV, rho, r, s, cm){
         this.cm = cm;
         this.v = v;
+        // also storing hash of value coz circuit standards
+        this.hashedV = hashedV;
         this.rho = rho;
         this.r = r;
         this.s = s

@@ -52,13 +52,15 @@ class SpartanZeroBlock extends Block{
    */
   async verifyTransaction(tx) {
     if (tx instanceof Blockchain.cfg.mintTransactionClass){
-      let v = tx.v;
+      let hashv = tx.hashv;
       let k = tx.k;
       let s = tx.s;
+      //let stringS = tx.s.toString();
       let cm = tx.cm;
 
-      let cm0 = SpartanZeroUtils.comm(v, k, s);
+      let cm0 = SpartanZeroUtils.comm(hashv, k, s);
       if (cm0 !=  cm){
+        console.log("Commitment is incorrect. should be "+cm);
         return false;
       }
       console.log("Commitment is correct");

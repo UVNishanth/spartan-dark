@@ -22,9 +22,10 @@ const TX_CONST = "TX";
 // are anonymous. So no sender validation reqd
 class TranMint {
 
-    constructor ({cm, v, k, s}){
+    constructor ({cm, v, hashv, k, s}){
         this.cm = cm;
         this.v = v;
+        this.hashv = hashv;
         this.k = k;
         this.s = s;
     }
