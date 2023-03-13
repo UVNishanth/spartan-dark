@@ -32,7 +32,7 @@ let getRand256Num = function() {
 // };
 
 let comm = (x, rho, r) => {
-  return utils.hash(x + rho + r + "");
+  return utils.hash(x + rho + r);
 };
 
 /**
