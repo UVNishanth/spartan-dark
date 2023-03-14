@@ -8,8 +8,6 @@ const { SpartanZero } = require("./spartan-zero.js");
 const SpartanZeroUtils = require("./spartan-zero-utils.js");
 const { TranMint } = require("./spartan-zero-tran-mint.js");
 
-
-
 //TODO: add functionality to mint new coins after initializing blockchain makeGenesis so that
 // the associated balance is converted into coins which the client cna then spend. Which can then be
 // used to determine whether the client has enough funds to mint a coin of specified value and hence
@@ -58,20 +56,23 @@ class SpartanZeroClient extends Client {
 
   mint(value) {
     let [k, mintedCoin] = SpartanZeroUtils.createNewSpartanZero(this, value);
-    let cm = mintedCoin.cm;
+    let cm = Buffer.from(mintedCoin.cm);
 
     //this.spartanZeroes.push(mintedCoin);
     //BETTERCODE: currently sorting using comparator after adding. Change so that element gets added into a sorted list and sorts itself during insertion
 
     this.spartanZeroes.push([value, mintedCoin]);
+    console.log("After push: ");
+    console.log(this.spartanZeroes + "\n\n");
     this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
-    console.log("CM for newly minted coin: " + cm);
+    console.log("CM for newly minted coin: ");
+    console.log(cm);
 
     // Create and broadcast the transaction.
     return this.postMintTransaction({
       cm: mintedCoin.cm,
       v: mintedCoin.v,
-      hashv : mintedCoin.hashedV,
+      hashv: mintedCoin.hashedV,
       k: k,
       s: mintedCoin.s,
     });
@@ -115,44 +116,41 @@ class SpartanZeroClient extends Client {
       this.spartanZeroes,
       amount
     );
-    
+
     rhoOld = oldSpartanZero.rho;
     // get addrSK of old coin
     let addrSKOld = this.addressBindings[oldSpartanZero.addrPK];
-    let snOld = SpartanZeroUtils.prf(
-      rhoOld,
-      SpartanZeroUtils.SN,
-      addrSKOld
-    );
+    let snOld = SpartanZeroUtils.prf(rhoOld, SpartanZeroUtils.SN, addrSKOld);
     let recvAddr = receiver.address;
 
     let coinToSpend = SpartanZeroUtils.createNewSpartanZero(recvAddr, value);
     // remaining amount spender needs to send back to themselves
-    let coinChange = SpartanZeroUtils.createNewSpartanZero(recvAddr, oldSpartanZero.v - value);
+    let coinChange = SpartanZeroUtils.createNewSpartanZero(
+      recvAddr,
+      oldSpartanZero.v - value
+    );
 
     const { pkSig, skSig } = SpartanZeroUtils.generateKeypair();
     let hSig = SpartanZeroUtils.hash(pkSig);
     let h_ = SpartanZeroUtils.prf(hSig, SpartanZeroUtils.PK, addrSKOld);
     let circuitInput = {
-      snOld : snOld,
-      cmNew1 : coinToSpend.cm,
-      cmNew2 : coinChange.cm,
-      hSig : hSig,
-      h_ : h_,
-      hashAddrSKOld : SpartanZeroUtils.hash(addrSKOld),
-      cOldRho : oldSpartanZero.rho,
-      cOldValue : oldSpartanZero.v,
-      cOldK : oldSpartanZero.k,
-      cOldS : oldSpartanZero.s,
-      cNew1Value : coinToSpend.v,
-      cNew1K : coinToSpend.k,
-      cNew1S : coinToSpend.s,
-      cNew2Value : coinChange.v,
-      cNew2K : coinChange.k,
-      cNew2S : coinChange.s,
-
+      snOld: snOld,
+      cmNew1: coinToSpend.cm,
+      cmNew2: coinChange.cm,
+      hSig: hSig,
+      h_: h_,
+      hashAddrSKOld: SpartanZeroUtils.hash(addrSKOld),
+      cOldRho: oldSpartanZero.rho,
+      cOldValue: oldSpartanZero.v,
+      cOldK: oldSpartanZero.k,
+      cOldS: oldSpartanZero.s,
+      cNew1Value: coinToSpend.v,
+      cNew1K: coinToSpend.k,
+      cNew1S: coinToSpend.s,
+      cNew2Value: coinChange.v,
+      cNew2K: coinChange.k,
+      cNew2S: coinChange.s,
     };
-
   }
 
   //TODO: implement
@@ -269,13 +267,40 @@ class SpartanZeroClient extends Client {
     //     }
     //   }
     // }
-    // console.log("before check: "+this.spartanZeroes);
-    this.spartanZeroes = this.spartanZeroes.filter((entry) =>{
-      let coin = entry[1];
-      return lastBlock.cmLedger.includes(coin.cm);
-    });
-    //console.log("after check: "+this.spartanZeroes);
+    console.log("before check: " + this.spartanZeroes);
+    // this.spartanZeroes = this.spartanZeroes.filter((entry) =>{
+    //   let coin = entry[1];
+    //   console.log("coin cm is: ");
+    //   console.log(coin.cm);
+    //   console.log("lastblock cm ledger: ")
+    //   console.log(lastBlock.cmLedger);
+    //   return lastBlock.cmLedger.includes(Buffer.from(coin.cm));
+    // });
+    let iter = this.spartanZeroes.length;
+    console.log("lastblock cm ledger: ");
+    console.log(lastBlock.cmLedger);
+    //BETTERCODE: using 2 loops to see if coin cm exists in ledger as a simple filtering like the one above does not seem to work.
+    while (iter--) {
+      let coin = this.spartanZeroes[iter][1];
+      console.log("coin cm is: ");
+      console.log(coin.cm);
 
+      let present = SpartanZeroUtils.bufferExistsInList(lastBlock.cmLedger, coin.cm);
+      // let present = 0;
+      // for (const m of lastBlock.cmLedger) {    
+      //   //if (!Buffer.compare(m, coin.cm)) {
+      //   if (m.equals(coin.cm)) {
+      //     console.log("match found!");
+      //     //let index = this.spartanZeroes.indexOf(iter);
+      //     present = 1;
+      //     break;
+      //   }
+      // }
+      if (!present) {
+        this.spartanZeroes.splice(iter, 1);
+      }
+    }
+    console.log("after check: " + this.spartanZeroes);
   }
 
   /**
@@ -302,7 +327,7 @@ class SpartanZeroClient extends Client {
     return balance;
   }
 
-  generateNewAddress(){
+  generateNewAddress() {
     this.keyPair = SpartanZeroUtils.generateKeypair();
     this.address = SpartanZeroUtils.calcAddress(this.keyPair.public);
     this.addrPK = this.keyPair.public;

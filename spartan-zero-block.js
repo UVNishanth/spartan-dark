@@ -29,13 +29,14 @@ class SpartanZeroBlock extends Block{
       for(let props in this){
         console.log(props);
       }
-      console.log("cmLedger is: "+this.cmLedger);
+      console.log("cmLedger is: ");
+      console.log(this.cmLedger);
       
       //HACK: updating cmLedger by first checking if it already exists. hack due to duplication. 
       // needs fix. try to use single miner. rewrite rerun in Block. in rerun the transactions
       // get added again by calling addTransactions. so that might be triggering the duplication.
-      if(!this.cmLedger.includes(tx.cm)){
-        this.cmLedger.push(tx.cm);
+      if(!this.cmLedger.includes(Buffer(tx.cm))){
+        this.cmLedger.push(Buffer.from(tx.cm));
       }
       this.transactions.set(tx.id, tx);
       return;
@@ -52,15 +53,15 @@ class SpartanZeroBlock extends Block{
    */
   async verifyTransaction(tx) {
     if (tx instanceof Blockchain.cfg.mintTransactionClass){
-      let hashv = tx.hashv;
-      let k = tx.k;
-      let s = tx.s;
+      let hashv = Buffer.from(tx.hashv);
+      let k = Buffer.from(tx.k);
+      let s = Buffer.from(tx.s);
       //let stringS = tx.s.toString();
-      let cm = tx.cm;
+      let cm = Buffer.from(tx.cm);
 
       let cm0 = SpartanZeroUtils.comm(hashv, k, s);
-      if (cm0 !=  cm){
-        console.log("Commitment is incorrect. should be "+cm);
+      if (!cm.equals(cm0)){
+        console.log("Commitment is incorrect. should be "+cm+" instead got "+cm0);
         return false;
       }
       console.log("Commitment is correct");
