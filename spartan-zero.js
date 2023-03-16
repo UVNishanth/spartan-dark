@@ -15,15 +15,16 @@ r = trapdoor generated for the coin. Also, the witness that the spender has to p
 
 
 class SpartanZero {
-    constructor(addrPK, v, hashedV, rho, r, s, cm){
-        this.cm = cm;
+    constructor(addrPK, v, hashedV, rho, r, s, cm, k){
+        this.cm = Buffer.from(cm);
         this.v = v;
         // also storing hash of value coz circuit standards
-        this.hashedV = hashedV;
-        this.rho = rho;
-        this.r = r;
-        this.s = s
+        this.hashedV = Buffer.from(hashedV);
+        this.rho = Buffer.from(rho);
+        this.r = Buffer.from(r);
+        this.s = Buffer.from(s),
         this.addrPK = addrPK;
+        this.k = k;
     }
 }
 

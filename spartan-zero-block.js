@@ -4,6 +4,9 @@ const { Block, Blockchain, utils } = require("spartan-gold");
 
 const SpartanZeroUtils = require("./spartan-zero-utils");
 
+const fs = require("fs");
+const snarkjs = require("snarkjs");
+
 //HIGHLIGHTS: added cmLedger and snLedger
 class SpartanZeroBlock extends Block {
   constructor(prevBlock) {
@@ -35,7 +38,9 @@ class SpartanZeroBlock extends Block {
       // needs fix. try to use single miner. rewrite rerun in Block. in rerun the transactions
       // get added again by calling addTransactions. so that might be triggering the duplication.
       //if(!this.cmLedger.includes(Buffer(tx.cm))){
-      if (!SpartanZeroUtils.bufferExistsInList(this.cmLedger, Buffer.from(tx.cm))) {
+      if (
+        !SpartanZeroUtils.bufferExistsInList(this.cmLedger, Buffer.from(tx.cm))
+      ) {
         this.cmLedger.push(Buffer.from(tx.cm));
       }
       this.transactions.set(tx.id, tx);
@@ -68,6 +73,22 @@ class SpartanZeroBlock extends Block {
       }
       console.log("Commitment is correct");
       return true;
+    } else if (tx instanceof Blockchain.cfg.pourTransactionClass) {
+      SpartanZeroUtils.printObjectProperties(tx);
+      let vKey = JSON.parse(fs.readFileSync("verification_key.json"));
+      let res = await snarkjs.groth16.verify(
+        vKey,
+        tx.proof.publicSignals,
+        tx.proof.proof
+      );
+      if (res !== true) {
+        console.log("unverified proof");
+        return false;
+      }
+      console.log("Pour transaction verified");
+      return true;
+    } else {
+      throw new Error("Received transaction type unknown");
     }
   }
 

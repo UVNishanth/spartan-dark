@@ -20,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/UVNishanth/spartan-in-the-dark/issues"
   },
-  "homepage": "https://github.com/UVNishanth/spartan-in-the-dark#readme"
+  "homepage": "https://github.com/UVNishanth/spartan-in-the-dark#readme",
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "snarkjs": "^0.6.8"
+  }
 }

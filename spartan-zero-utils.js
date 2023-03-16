@@ -19,6 +19,18 @@ let sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 //   return aleaRNGFactory(seed).uInt32();
 // };
 
+// Circuits do not take Buffers as inputs. Need to convert them into bitarrays
+//CITE: https://github.com/iden3/circomlib/blob/master/test/sha256.js
+let bufferToBitArray = function (buf) {
+  let result = [];
+  for (let i = 0; i < buf.length; i++) {
+    for (let j = 0; j < 8; j++) {
+      result.push((buf[i] >> (7 - j)) & 1);
+    }
+  }
+  return result;
+};
+
 let getRand256Num = function () {
   //let randomBytes = new Uint8Array(32);
   //getRandomValues(randomBytes);
@@ -32,8 +44,8 @@ let getRand256Num = function () {
 
 let comm = (x, rho, r) => {
   x = Buffer.isBuffer(x) ? x : Buffer.from(x);
-  rho = Buffer.isBuffer(rho) ? x : Buffer.from(rho);
-  r = Buffer.isBuffer(r) ? x : Buffer.from(r);
+  rho = Buffer.isBuffer(rho) ? rho : Buffer.from(rho);
+  r = Buffer.isBuffer(r) ? r : Buffer.from(r);
   let s = Buffer.concat([x, rho, r]);
   return hash(s);
 };
@@ -73,11 +85,16 @@ module.exports.OrderSpartanZero = (a, b) => {
 // BETTERCODE:returning smallest coin > val. using linear search. replace with optimized code
 // Finding > and not >= so that we always have two coins generated. if >=, then it might return a coin which is equal and then we won't be able to create 2 coins
 module.exports.findAppropSpartanZero = (arr, val) => {
-  arr.forEach((el) => {
-    if (el.v > val) {
-      return el;
+  console.log("coin list is: ");
+  console.log(arr);
+  console.log("Val is: ");
+  console.log(val);
+  for (const [v, coin] of arr) {
+    if (v > val) {
+      return coin;
     }
-  });
+  }
+  console.log("No coin found");
 };
 
 /**
@@ -111,7 +128,7 @@ module.exports.createNewSpartanZero = (owner, value) => {
   //let cm = comm(hashValue, k, s.toString());
   let cm = comm(hashValue, k, s);
 
-  return [k, new SpartanZero(owner.addrPK, value, hashValue, rho, r, s, cm)];
+  return new SpartanZero(owner.addrPK, value, hashValue, rho, r, s, cm, k);
 };
 
 //DESIGNDEC: Writing own hash func coz spartan-gold's hash() creates a a hash digest of size 512 bits, while we have standardized 256-bit hashes for ease of use in circuits
@@ -122,10 +139,10 @@ let hash = (s) => {
 };
 
 /**
- * 
- * @param {Buffer[]} list 
- * @param {Buffer} buff 
- * @returns 
+ *
+ * @param {Buffer[]} list
+ * @param {Buffer} buff
+ * @returns
  */
 let bufferExistsInList = (list, buff) => {
   for (const el of list) {
@@ -135,6 +152,12 @@ let bufferExistsInList = (list, buff) => {
     }
   }
   return 0;
+};
+
+let printObjectProperties = (obj) => {
+  for(let props in obj){
+    console.log(props);
+  }
 };
 
 module.exports.ADDR = ADDR;
@@ -148,3 +171,5 @@ module.exports.generateKeypair = utils.generateKeypair;
 module.exports.calcAddress = utils.calcAddress;
 module.exports.getRand256Num = getRand256Num;
 module.exports.bufferExistsInList = bufferExistsInList;
+module.exports.bufferToBitArray = bufferToBitArray;
+module.exports.printObjectProperties = printObjectProperties;

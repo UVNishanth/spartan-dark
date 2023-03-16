@@ -7,6 +7,7 @@ const { SpartanZeroBlockchain } = require("./spartan-zero-blockchain.js");
 const { SpartanZero } = require("./spartan-zero.js");
 const SpartanZeroUtils = require("./spartan-zero-utils.js");
 const { TranMint } = require("./spartan-zero-tran-mint.js");
+const { TranPour } = require("./spartan-zero-tran-pour.js");
 
 //TODO: add functionality to mint new coins after initializing blockchain makeGenesis so that
 // the associated balance is converted into coins which the client cna then spend. Which can then be
@@ -55,7 +56,7 @@ class SpartanZeroClient extends Client {
    */
 
   mint(value) {
-    let [k, mintedCoin] = SpartanZeroUtils.createNewSpartanZero(this, value);
+    let mintedCoin = SpartanZeroUtils.createNewSpartanZero(this, value);
     let cm = Buffer.from(mintedCoin.cm);
 
     //this.spartanZeroes.push(mintedCoin);
@@ -69,11 +70,11 @@ class SpartanZeroClient extends Client {
     console.log(cm);
 
     // Create and broadcast the transaction.
-    return this.postMintTransaction({
+    this.postGenericTransaction({
       cm: mintedCoin.cm,
       v: mintedCoin.v,
       hashv: mintedCoin.hashedV,
-      k: k,
+      k: mintedCoin.k,
       s: mintedCoin.s,
     });
   }
@@ -101,10 +102,39 @@ class SpartanZeroClient extends Client {
 
     this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
 
-    return tx;
+    //return tx;
   }
 
-  spend(receiver, amount) {
+  postGenericTransaction(txData) {
+    // Creating a transaction, with defaults for the
+    // from, nonce, and pubKey fields.
+    let tx;
+    if (Object.hasOwn(txData, "sn")) {
+      tx = new TranPour(txData);
+    }
+    //console.log("Am here now");
+    else {
+      tx = new TranMint(txData);
+    }
+
+    //HIGHLIGHTS: Don't need to sign transaction unlike in original
+    //tx.sign(this.keyPair.private);
+
+    // Adding transaction to pending.
+    this.pendingOutgoingTransactions.set(tx.id, tx);
+
+    //HIGHLIGHTS: nonce isn't utilized
+    //this.nonce++;
+
+    this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
+  }
+
+  /**
+   * 
+   * @param {SpartanZeroClient} receiver 
+   * @param {Number} amount 
+   */
+  async spend(receiver, amount) {
     let currBalance = this.getBalance();
     if (currBalance < amount) {
       throw new Error(
@@ -117,40 +147,57 @@ class SpartanZeroClient extends Client {
       amount
     );
 
-    rhoOld = oldSpartanZero.rho;
+    console.log("Printing old coins props...");
+    SpartanZeroUtils.printObjectProperties(oldSpartanZero);
+    
+    let rhoOld = oldSpartanZero.rho;
     // get addrSK of old coin
     let addrSKOld = this.addressBindings[oldSpartanZero.addrPK];
     let snOld = SpartanZeroUtils.prf(rhoOld, SpartanZeroUtils.SN, addrSKOld);
-    let recvAddr = receiver.address;
+    //let recvAddr = receiver.address;
 
-    let coinToSpend = SpartanZeroUtils.createNewSpartanZero(recvAddr, value);
+    let coinToSpend = SpartanZeroUtils.createNewSpartanZero(receiver, amount);
     // remaining amount spender needs to send back to themselves
     let coinChange = SpartanZeroUtils.createNewSpartanZero(
-      recvAddr,
-      oldSpartanZero.v - value
+      this,
+      oldSpartanZero.v - amount
     );
 
-    const { pkSig, skSig } = SpartanZeroUtils.generateKeypair();
+    const sigKeys = SpartanZeroUtils.generateKeypair();
+    let pkSig = sigKeys.public;
+    let skSig = sigKeys.private;
     let hSig = SpartanZeroUtils.hash(pkSig);
     let h_ = SpartanZeroUtils.prf(hSig, SpartanZeroUtils.PK, addrSKOld);
     let circuitInput = {
-      snOld: snOld,
-      cmNew1: coinToSpend.cm,
-      cmNew2: coinChange.cm,
-      hSig: hSig,
-      h_: h_,
-      hashAddrSKOld: SpartanZeroUtils.hash(addrSKOld),
-      cOldRho: oldSpartanZero.rho,
-      cOldValue: oldSpartanZero.v,
-      cOldK: oldSpartanZero.k,
-      cOldS: oldSpartanZero.s,
-      cNew1Value: coinToSpend.v,
-      cNew1K: coinToSpend.k,
-      cNew1S: coinToSpend.s,
-      cNew2Value: coinChange.v,
-      cNew2K: coinChange.k,
-      cNew2S: coinChange.s,
+      k: SpartanZeroUtils.bufferToBitArray(
+        SpartanZeroUtils.comm(
+          SpartanZeroUtils.hash(oldSpartanZero.addrPK),
+          oldSpartanZero.r,
+          oldSpartanZero.rho
+        )
+      ),
+      hashValue: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.hashedV),
+      s: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.s),
+      cm: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.cm),
     };
+
+    let proofPacket = await snarkjs.groth16.fullProve(
+      circuitInput,
+      "circuit_js/circuit.wasm",
+      "circuit_final.zkey"
+    );
+
+    this.postGenericTransaction({
+      sn: snOld,
+      cm1New: coinToSpend,
+      cm2New: coinChange,
+      pkSig: pkSig,
+      h: h_,
+      proof: proofPacket,
+      //TODO: Generate proper sigma. now using placeholder as we aren't using it for now
+      sigma: "",
+
+    });
   }
 
   //TODO: implement
@@ -285,9 +332,12 @@ class SpartanZeroClient extends Client {
       console.log("coin cm is: ");
       console.log(coin.cm);
 
-      let present = SpartanZeroUtils.bufferExistsInList(lastBlock.cmLedger, coin.cm);
+      let present = SpartanZeroUtils.bufferExistsInList(
+        lastBlock.cmLedger,
+        coin.cm
+      );
       // let present = 0;
-      // for (const m of lastBlock.cmLedger) {    
+      // for (const m of lastBlock.cmLedger) {
       //   //if (!Buffer.compare(m, coin.cm)) {
       //   if (m.equals(coin.cm)) {
       //     console.log("match found!");

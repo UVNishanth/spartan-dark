@@ -10,7 +10,9 @@ const START_MINING = "START_MINING";
 const NUM_ROUNDS_MINING = 2000;
 
 // Constants related to proof-of-work target
-const POW_BASE_TARGET = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+const POW_BASE_TARGET = BigInt(
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+);
 const POW_LEADING_ZEROES = 15;
 
 // Constants for mining rewards and default transaction fees
@@ -22,57 +24,57 @@ const DEFAULT_TX_FEE = 1;
 // Note that the genesis block is always considered to be confirmed.
 const CONFIRMED_DEPTH = 6;
 
+const { Blockchain } = require("spartan-gold");
 
-const { Blockchain} = require ('spartan-gold');
-
-const {SpartanZeroBlock} = require('./spartan-zero-block');
-
+const { SpartanZeroBlock } = require("./spartan-zero-block");
 
 //HIGHLIGHTS: setting new TransactionClasses
-class SpartanZeroBlockchain extends Blockchain{
+class SpartanZeroBlockchain extends Blockchain {
   static makeGenesis(cfg) {
+    // let supercfg = Object.assign({}, cfg);
+    // delete supercfg.mintTransactionClass;
+    // delete supercfg.pourTransactionClass;
+    let block = super.makeGenesis(cfg);
 
-    
+    block.snLedger = [];
+    block.cmLedger = [];
 
-      // let supercfg = Object.assign({}, cfg);
-      // delete supercfg.mintTransactionClass;
-      // delete supercfg.pourTransactionClass;
-      let block = super.makeGenesis(cfg);
+    console.log("genesis: " + block.isGenesisBlock());
+    //throw new Error();
 
-      block.snLedger = [];
-      block.cmLedger = [];
-
-      console.log("genesis: "+block.isGenesisBlock());
-      //throw new Error();
-
-      // settign genesis again after super so that blocktype for clients is 
-      // ZerCoinBlock and not just Block
-      if (cfg.clientBalanceMap) {
-        for (let client of cfg.clientBalanceMap.keys()) {
-          client.lastBlock = null;
-          client.setGenesisBlock(block);
-        }
+    // settign genesis again after super so that blocktype for clients is
+    // ZerCoinBlock and not just Block
+    if (cfg.clientBalanceMap) {
+      for (let client of cfg.clientBalanceMap.keys()) {
+        client.lastBlock = null;
+        client.setGenesisBlock(block);
       }
-
-      Blockchain.cfg.mintTransactionClass = cfg.mintTransactionClass;
-      Blockchain.cfg.pourTransactionClass = cfg.pourTransactionClass;
-      for (let prop in Blockchain.cfg) {
-        console.log(prop+": "+Blockchain.cfg.prop);
-      }
-      //throw new Error();
-      //FileSystem.
-      return block;
-  }
-  static makeTransaction(o) {
-    if (o instanceof Blockchain.cfg.mintTransactionClass || o instanceof Blockchain.cfg.pourTransactionClass) {
-      return o;
-    } else {
-      return new Blockchain.cfg.mintTransactionClass(o);
     }
 
+    Blockchain.cfg.mintTransactionClass = cfg.mintTransactionClass;
+    Blockchain.cfg.pourTransactionClass = cfg.pourTransactionClass;
+    for (let prop in Blockchain.cfg) {
+      console.log(prop + ": " + Blockchain.cfg.prop);
+    }
+    //throw new Error();
+    //FileSystem.
+    return block;
+  }
+  static makeTransaction(o) {
+    if (
+      o instanceof Blockchain.cfg.mintTransactionClass ||
+      o instanceof Blockchain.cfg.pourTransactionClass
+    ) {
+      return o;
+    }
+    //BETTERCODE: setting class based on object property
+    if (Object.hasOwn(o, "sn")) {
+      return new Blockchain.cfg.pourTransactionClass(o);
+    }
+    return new Blockchain.cfg.mintTransactionClass(o);
   }
 
-    /**
+  /**
    * Converts a string representation of a block to a new Block instance.
    *
    * @param {Object} o - An object representing a block, but not necessarily an instance of Block.
@@ -80,7 +82,10 @@ class SpartanZeroBlockchain extends Blockchain{
    * @returns {SpartanZeroBlock}
    */
   static deserializeBlock(o) {
-    if (o instanceof Blockchain.cfg.blockClass) { console.log("already a block");return o; }
+    if (o instanceof Blockchain.cfg.blockClass) {
+      console.log("already a block");
+      return o;
+    }
 
     let block = new Blockchain.cfg.blockClass();
     block.chainLength = parseInt(o.chainLength, 10);
@@ -88,10 +93,11 @@ class SpartanZeroBlockchain extends Blockchain{
     block.prevBlockHash = o.prevBlockHash;
     block.proof = o.proof;
     block.transactions = new Map();
-    if (o.transactions) o.transactions.forEach(([txID,txJson]) => {
-      let tx = this.deserializeTransaction(txJson);
-      block.transactions.set(tx.id, tx);
-    });
+    if (o.transactions)
+      o.transactions.forEach(([txID, txJson]) => {
+        let tx = this.deserializeTransaction(txJson);
+        block.transactions.set(tx.id, tx);
+      });
 
     //BUG: have hardcoded snLedger and cmLedger as there was error coz o didn't have them. ask why so
     //block.snLedger = [];
@@ -114,15 +120,20 @@ class SpartanZeroBlockchain extends Blockchain{
    * @returns {SpartanZeroTransaction}
    */
   static deserializeTransaction(o) {
-    if (o instanceof Blockchain.cfg.mintTransactionClass || 
-      o instanceof Blockchain.cfg.pourTransactionClass) { return o; }
-    
+    if (
+      o instanceof Blockchain.cfg.mintTransactionClass ||
+      o instanceof Blockchain.cfg.pourTransactionClass
+    ) {
+      return o;
+    }
+
     //BETTERCODE: setting class based on object property
-    if (Object.hasOwn(o, 'sn')){
+    if (Object.hasOwn(o, "sn")) {
+      console.log("Pour Transaction found!!!!!!");
       return new Blockchain.cfg.pourTransactionClass(o);
     }
     return new Blockchain.cfg.mintTransactionClass(o);
-  }   
+  }
 }
 
-module.exports.SpartanZeroBlockchain = SpartanZeroBlockchain; 
+module.exports.SpartanZeroBlockchain = SpartanZeroBlockchain;
