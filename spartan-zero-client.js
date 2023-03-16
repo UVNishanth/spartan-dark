@@ -33,6 +33,7 @@ class SpartanZeroClient extends Client {
   constructor({ name, net, startingBlock } = {}) {
     super({ name, net, startingBlock });
 
+    // spartanZeroes = (value, coin) []
     //DESIGNDEC: changing dict of cm -> coin to list of tuples (value, coin) coz list easier to sort than dict
     this.spartanZeroes = [];
     this.on(SpartanZeroBlockchain.PROOF_FOUND, this.receiveBlock);
@@ -130,9 +131,9 @@ class SpartanZeroClient extends Client {
   }
 
   /**
-   * 
-   * @param {SpartanZeroClient} receiver 
-   * @param {Number} amount 
+   *
+   * @param {SpartanZeroClient} receiver
+   * @param {Number} amount
    */
   async spend(receiver, amount) {
     let currBalance = this.getBalance();
@@ -147,21 +148,43 @@ class SpartanZeroClient extends Client {
       amount
     );
 
+    console.log("spartanZeroes list before deletion of old coin");
+    console.log(this.spartanZeroes);
+
+    this.spartanZeroes = this.spartanZeroes.filter((entry) => {
+      let coin = entry[1];
+      return coin.cm !== oldSpartanZero.cm;
+    });
+
+    console.log("cm of old coin deleted");
+    console.log(oldSpartanZero.cm);
+    console.log("Updated spartanZeroes list after spending");
+    console.log(this.spartanZeroes);
+
     console.log("Printing old coins props...");
     SpartanZeroUtils.printObjectProperties(oldSpartanZero);
-    
+
     let rhoOld = oldSpartanZero.rho;
     // get addrSK of old coin
     let addrSKOld = this.addressBindings[oldSpartanZero.addrPK];
     let snOld = SpartanZeroUtils.prf(rhoOld, SpartanZeroUtils.SN, addrSKOld);
     //let recvAddr = receiver.address;
 
+    // the amount the spender needs to get back after spending the requd amount
+    let change = oldSpartanZero.v - amount;
     let coinToSpend = SpartanZeroUtils.createNewSpartanZero(receiver, amount);
     // remaining amount spender needs to send back to themselves
     let coinChange = SpartanZeroUtils.createNewSpartanZero(
       this,
-      oldSpartanZero.v - amount
+      change
     );
+
+    // client needs to get back coinChange. so we can store coinChange in client's list and then check if transaction got validated while doing getBalance()
+    this.spartanZeroes.push([change, coinChange]);
+    console.log("After getting back change: ");
+    console.log(this.spartanZeroes);
+    console.log("\n\n");
+    this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
 
     const sigKeys = SpartanZeroUtils.generateKeypair();
     let pkSig = sigKeys.public;
@@ -183,20 +206,23 @@ class SpartanZeroClient extends Client {
 
     let proofPacket = await snarkjs.groth16.fullProve(
       circuitInput,
-      "circuit_js/circuit.wasm",
+      "circuit.wasm",
       "circuit_final.zkey"
     );
 
+    console.log("For pour: generated 2 new coins of cm: ");
+    console.log(coinToSpend.cm);
+    console.log(coinChange.cm);
+
     this.postGenericTransaction({
       sn: snOld,
-      cm1New: coinToSpend,
-      cm2New: coinChange,
+      cm1New: coinToSpend.cm,
+      cm2New: coinChange.cm,
       pkSig: pkSig,
       h: h_,
       proof: proofPacket,
       //TODO: Generate proper sigma. now using placeholder as we aren't using it for now
       sigma: "",
-
     });
   }
 
