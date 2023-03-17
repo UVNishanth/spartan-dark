@@ -5,6 +5,7 @@ include "node_modules/circomlib/circuits/sha256/sha256.circom";
 
 template VerifySpartanZero() {
 
+    //DESIGNDEC reduced hash size from 256 to 64. We take the liberty of assuming that our blockchain is not getting attacked by external forces. So acc to the birthday paradox, a hash of size 64 bits should do just fine since our system is very small for now and only a few hashes are getting generated. Cite this reasoning in paper & during defense
     var HASH_LENGTH = 64;
 
     signal input cm[HASH_LENGTH];
