@@ -5,7 +5,7 @@ include "node_modules/circomlib/circuits/sha256/sha256.circom";
 
 template VerifySpartanZero() {
 
-    var HASH_LENGTH = 256;
+    var HASH_LENGTH = 64;
 
     signal input cm[HASH_LENGTH];
     signal input hashValue[HASH_LENGTH];

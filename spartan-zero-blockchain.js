@@ -99,6 +99,7 @@ class SpartanZeroBlockchain extends Blockchain {
         block.transactions.set(tx.id, tx);
       });
 
+    //ISSUEFIXED: 
     //BUG: have hardcoded snLedger and cmLedger as there was error coz o didn't have them. ask why so
     //block.snLedger = [];
     for (let i = 0; i < o.snLedger.length; i++) {

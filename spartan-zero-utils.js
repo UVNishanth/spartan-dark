@@ -38,6 +38,14 @@ let getRand256Num = function () {
   return crypto.randomBytes(32);
 };
 
+let getRand64Num = function () {
+  //let randomBytes = new Uint8Array(32);
+  //getRandomValues(randomBytes);
+  //return Buffer.alloc(32, randomBytes);
+  return crypto.randomBytes(8);
+};
+
+
 // module.exports.hash = (s, encoding) => {
 //   return utils.hash(s, encoding);
 // };
@@ -106,14 +114,14 @@ module.exports.findAppropSpartanZero = (arr, val) => {
 
 module.exports.createNewSpartanZero = (owner, value) => {
   //let rho = gen();
-  let rho = getRand256Num();
+  let rho = getRand64Num();
   //let r = gen();
-  let r = getRand256Num();
+  let r = getRand64Num();
   //let bitArrR = r.toString(2);
   //console.log("Actual r: "+r);
   //console.log("bitarray r: "+bitArrR);
   //let s = gen();
-  let s = getRand256Num();
+  let s = getRand64Num();
 
   let hashValue = hash(value + "");
   console.log(hashValue.length);
@@ -134,6 +142,7 @@ module.exports.createNewSpartanZero = (owner, value) => {
 //DESIGNDEC: Writing own hash func coz spartan-gold's hash() creates a a hash digest of size 512 bits, while we have standardized 256-bit hashes for ease of use in circuits
 let hash = (s) => {
   let res = crypto.createHash("sha256").update(s).digest();
+  res = Uint8Array.prototype.slice.call(res, 0, 8);
   console.log(Buffer.byteLength(res));
   return res;
 };
@@ -169,7 +178,7 @@ module.exports.comm = comm;
 module.exports.hash = hash;
 module.exports.generateKeypair = utils.generateKeypair;
 module.exports.calcAddress = utils.calcAddress;
-module.exports.getRand256Num = getRand256Num;
+module.exports.getRand64Num = getRand64Num;
 module.exports.bufferExistsInList = bufferExistsInList;
 module.exports.bufferToBitArray = bufferToBitArray;
 module.exports.printObjectProperties = printObjectProperties;

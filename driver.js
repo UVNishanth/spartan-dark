@@ -84,7 +84,7 @@ charlie.mint(9);
 //need to wait for sometime so that minting process begins so that the client finds some coins in their purse
 setTimeout(() => {
   charlie.spend(alice, 5);
-}, 500);
+}, 100);
 
 
 //ASK: too large a timeout. Ask how to trigger after spend is done.
@@ -104,7 +104,7 @@ setTimeout(() => {
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
-}, 30000);
+}, 15000);
 
 
 // // Transfer some money around.
