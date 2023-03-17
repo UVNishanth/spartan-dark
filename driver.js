@@ -80,11 +80,20 @@ alice.mint(7);
 console.log("Charlie is minting coin of value 9");
 charlie.mint(9);
 
+console.log("Bob is minting coin of value 50");
 
 //need to wait for sometime so that minting process begins so that the client finds some coins in their purse
 setTimeout(() => {
   charlie.spend(alice, 5);
 }, 100);
+
+console.log("Bob is minting coin of value 50");
+bob.mint(50);
+
+setTimeout(() => {
+  bob.spend(alice, 20);
+}, 100);
+
 
 
 //ASK: too large a timeout. Ask how to trigger after spend is done.
@@ -101,10 +110,11 @@ setTimeout(() => {
 //   console.log("Transaction List: ");
   console.log("Alice now has coins of total value: "+alice.getBalance());
   console.log("Charlie now has coins of total value: "+charlie.getBalance());
+  console.log("Bob now has coins of total value: "+bob.getBalance());
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
-}, 15000);
+}, 30000);
 
 
 // // Transfer some money around.
