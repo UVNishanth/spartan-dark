@@ -9,3 +9,8 @@ prepare_circuit.sh
 launch.json
 circuit_js
 node_modules
+circuit.r1cs
+circuit.sym
+circuit_0000.zkey
+circuit_0001.zkey
+pot15_final.ptau
