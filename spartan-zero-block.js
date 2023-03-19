@@ -69,6 +69,16 @@ class SpartanZeroBlock extends Block {
         this.cmLedger.push(Buffer.from(tx.cm2New));
       }
 
+      if (
+        !SpartanZeroUtils.bufferExistsInList(
+          this.snLedger,
+          Buffer.from(tx.sn)
+        )
+      ) {
+        this.snLedger.push(Buffer.from(tx.sn));
+        console.log("sn of spent coin added to sn ledger");
+      }
+
       //DESIGNDEC: need not delete cmOld from cmLedger as it's a ledger of all cms accounted for. We gonna anyway check snLedger for double spending. And anyway we don't have cmOld information in pour transaction as that information is hidden so that it cannot be tracked back
 
       this.transactions.set(tx.id, tx);
@@ -106,7 +116,16 @@ class SpartanZeroBlock extends Block {
       console.log("Commitment is correct");
       return true;
     } else if (tx instanceof Blockchain.cfg.pourTransactionClass) {
-      SpartanZeroUtils.printObjectProperties(tx);
+      //SpartanZeroUtils.printObjectProperties(tx);
+      if (
+        SpartanZeroUtils.bufferExistsInList(
+          this.snLedger,
+          Buffer.from(tx.sn)
+        )
+      ) {
+        console.log("Sn already present in Ledger. Spender trying to double spend!!");
+        return false;
+      }
       let vKey = JSON.parse(fs.readFileSync("verification_key.json"));
       let res = await snarkjs.groth16.verify(
         vKey,

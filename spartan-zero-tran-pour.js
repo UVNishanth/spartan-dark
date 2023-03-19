@@ -24,14 +24,15 @@ const TX_CONST = "TX";
 // HIGHLIGHTS: does not require signing, verify sign etc like the og transaction as the transactions
 // are anonymous. So no sender validation reqd
 class TranPour {
-  constructor({ sn, cm1New, cm2New, pkSig, h, proof, sigma }) {
+  constructor({ sn, cm1New, cm2New, pkSig, h, proof, encTran1Id, encTran2Id }) {
     this.sn = sn;
     this.cm1New = Buffer.from(cm1New);
     this.cm2New = Buffer.from(cm2New);
     this.pkSig = pkSig;
     this.h = h;
     this.proof = proof;
-    this.sigma = sigma;
+    this.encTran1Id = encTran1Id;
+    this.encTran2Id = encTran2Id;
   }
 
   /**
@@ -50,7 +51,8 @@ class TranPour {
           pkSig: this.pkSig,
           h: this.h,
           proof: this.proof,
-          sigma: this.sigma,
+          encTran1Id : this.encTran1Id,
+          encTran2Id : this.encTran2Id
           // no transaction fee during minting reqd
           //fee: this.fee,
         })

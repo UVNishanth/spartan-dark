@@ -17,6 +17,9 @@ const { TranPour } = require("./spartan-zero-tran-pour.js");
  * A SpartanZeroClient is capable of minting coins and sending/receiving minted coins
  */
 class SpartanZeroClient extends Client {
+
+
+  #privDecKey;
   //CITE: spartan-gold's Client class description
   /**
    * The net object determines how the client communicates
@@ -42,6 +45,8 @@ class SpartanZeroClient extends Client {
     this.addressBindings = {};
 
     this.generateNewAddress();
+
+    this.generateEncDecKeyPair();
   }
 
   // ASK: Make sure the client has enough gold.
@@ -408,6 +413,17 @@ class SpartanZeroClient extends Client {
     this.address = SpartanZeroUtils.calcAddress(this.keyPair.public);
     this.addrPK = this.keyPair.public;
     this.addressBindings[this.keyPair.public] = this.keyPair.private;
+  }
+
+  generateEncDecKeyPair(){
+    let encDecKeyPair = SpartanZeroUtils.generateKeypair();
+    this.pubEncKey = encDecKeyPair.public;
+    // DESIGNDEC: marking private decryption key as private using '#' 
+    this.#privDecKey = encDecKeyPair.private;
+    console.log("Pub priv enc dec keys");
+    console.log(this.pubEncKey);
+    console.log(this.#privDecKey);
+    console.log();
   }
 }
 
