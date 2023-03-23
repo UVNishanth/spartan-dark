@@ -278,6 +278,7 @@ class SpartanZeroClient extends Client {
     let coin = msgInfo.coin;
     let cm = coin.cm;
     this.coinFound.set(cm, false);
+    //DESIGNDEC: even tho receieveTransation is triggered immediately after spender spends the coin, due to latency of proof generation, the coin might not be on the ledger immediately. So we run the findcoin function (inside the setIntervals) periodically till the coin is found. Can add a timeout to let the reciever know that spender's transaction has been invalidated (easy way to implement is to keep a cmRejectedLedger in block and also check lastblock's cmRejectedLedger to see if the coin was rejected)
     let timerId = setInterval(() => {
       if (this.checkIfCmInLedger(cm)) {
         console.log("Transaction Found by Receiver!!!!!!");
