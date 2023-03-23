@@ -114,7 +114,7 @@ setTimeout(() => {
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
-}, 60000);
+}, 40000);
 
 
 // // Transfer some money around.

@@ -181,9 +181,13 @@ module.exports.printWallet = (client) => {
   }
 };
 
-module.exports.addSpartanZeroWithValueToWallet = (wallet, spartanZeroWithValue) => {
-  wallet.push(spartanZeroWithValue);
+module.exports.addSpartanZeroWithValueToWallet = (wallet, spartanZero) => {
+  console.log("Before adding: ");
+  console.log(wallet);
+  wallet.push([spartanZero.v, spartanZero]);
   wallet.sort(OrderSpartanZero);
+  console.log("After adding: ");
+  console.log(wallet);
   return wallet;
 };
 

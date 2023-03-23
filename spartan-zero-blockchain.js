@@ -40,6 +40,8 @@ class SpartanZeroBlockchain extends Blockchain {
     block.snLedger = [];
     block.cmLedger = [];
 
+    //SpartanZeroBlockchain.pourTransactions
+
     console.log("genesis: " + block.isGenesisBlock());
     //throw new Error();
 

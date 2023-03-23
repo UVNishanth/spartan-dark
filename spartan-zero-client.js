@@ -38,6 +38,7 @@ class SpartanZeroClient extends Client {
     //DESIGNDEC: changing dict of cm -> coin to list of tuples (value, coin) coz list easier to sort than dict
     this.spartanZeroes = [];
     this.on(SpartanZeroBlockchain.PROOF_FOUND, this.receiveBlock);
+    this.on(SpartanZeroBlockchain.RECEIVE_TRANSACTION, this.receiveTransaction);
 
     // to maintain public-private keys relationship even when new address is generated
     this.addressBindings = {};
@@ -70,7 +71,10 @@ class SpartanZeroClient extends Client {
     // console.log("After push: ");
     // console.log(this.spartanZeroes + "\n\n");
     // this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
-    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(this.spartanZeroes, [value, mintedCoin]);
+    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
+      this.spartanZeroes,
+      mintedCoin
+    );
     console.log("CM for newly minted coin: ");
     console.log(cm);
 
@@ -184,7 +188,10 @@ class SpartanZeroClient extends Client {
 
     // client needs to get back coinChange. so we can store coinChange in client's list and then check if transaction got validated while doing getBalance()
     //this.spartanZeroes.push([change, coinChange]);
-    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(this.spartanZeroes, [change, coinChange]);
+    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
+      this.spartanZeroes,
+      coinChange
+    );
     console.log("After getting back change: ");
     console.log(this.spartanZeroes);
     console.log("\n\n");
@@ -218,7 +225,7 @@ class SpartanZeroClient extends Client {
     console.log(coinToSpend.cm);
     console.log(coinChange.cm);
 
-    this.postGenericTransaction({
+    let tx = this.postGenericTransaction({
       sn: snOld,
       cm1New: coinToSpend.cm,
       cm2New: coinChange.cm,
@@ -228,6 +235,25 @@ class SpartanZeroClient extends Client {
       //TODO: Generate proper sigma. now using placeholder as we aren't using it for now
       sigma: "",
     });
+
+    //Send notification to receiver to check for pour transaction on the ledger
+    //DESIGNDEC: Sending coin alongwith notification so that the receiver can only check if the pourT id sent is present on the ledger and if yes, put that coin in its wallet. So our enc dec logic becomes redundant as the receiver already has the coin and does not need to decrypt anything from the pour transaction. Simplifying the actual logic of zerocash
+    this.net.sendMessage(
+      receiver.address,
+      SpartanZeroBlockchain.RECEIVE_TRANSACTION,
+      {
+        cm: coinToSpend.cm,
+        coin: coinToSpend,
+      }
+    );
+    // this.net.sendMessage(
+    //   this.address,
+    //   SpartanZeroBlockchain.RECEIVE_TRANSACTION,
+    //   {
+    //     txId: tx.id,
+    //     coin: coinChange,
+    //   }
+    // );
   }
 
   //TODO: implement
@@ -244,20 +270,43 @@ class SpartanZeroClient extends Client {
    * @returns
    */
   async receiveTransaction(msgInfo) {
+    console.log("Received triggered for "+this.name);
+    //console.log(this.name+" is try");
     let txId = msgInfo.txId;
     let coin = msgInfo.coin;
 
     let COIN_NOT_FOUND = true;
-    let blockWhereTransExist;
-    while (COIN_NOT_FOUND) {
-      for (let index = this.blocks.size; index >= 0; index--) {
-        let currBlock = SpartanZeroUtils.getMapValueAtIndex(this.blocks, index);
-        if (currBlock.transactions.has(txId)) {
-          console.log("Transaction Found by Receiver!!!!!!");
-          break;
-        }
-      }
-    }
+    //let blockWhereTransExist;
+    // while (COIN_NOT_FOUND) {
+    //   console.log(this.name + " is finding the blocks again");
+    //   // for (let index = this.blocks.size-1; index >= 0; index--) {
+    //   //   let currBlock = SpartanZeroUtils.getMapValueAtIndex(this.blocks, index);
+    //   //   if (currBlock.transactions.has(txId)) {
+    //   //     console.log("Transaction Found by Receiver!!!!!!");
+    //   //     COIN_NOT_FOUND = false;
+    //   //     break;
+    //   //   }
+    //   //   if (!COIN_NOT_FOUND){
+    //   //     break;
+    //   //   }
+    //   // }
+    //   let lastBlock = this.lastConfirmedBlock;
+    //   if (lastBlock.transactions.has(txId)) {
+    //         console.log("Transaction Found by Receiver!!!!!!");
+    //         COIN_NOT_FOUND = false;
+    //         break;
+    //   }
+    // let lastBlock = this.lastConfirmedBlock;
+    // if (lastBlock.transactions.has(txId)) {
+    console.log("Transaction Found by Receiver!!!!!!");
+    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
+      this.spartanZeroes,
+      coin
+    );
+    // /COIN_NOT_FOUND = false;
+    return;
+    // }
+    // this.receiveTransaction(msgInfo);
   }
 
   //HACK: could have used. but as zk-spartan-cash has 2 transaction classes,
@@ -379,7 +428,7 @@ class SpartanZeroClient extends Client {
 
       let present = SpartanZeroUtils.bufferExistsInList(
         lastBlock.cmLedger,
-        coin.cm
+        Buffer.from(coin.cm)
       );
       // let present = 0;
       // for (const m of lastBlock.cmLedger) {
