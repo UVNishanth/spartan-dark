@@ -153,6 +153,7 @@ let hash = (s) => {
  * @param {Buffer} buff
  * @returns
  */
+
 let bufferExistsInList = (list, buff) => {
   for (const el of list) {
     if (el.equals(buff)) {
@@ -182,12 +183,12 @@ module.exports.printWallet = (client) => {
 };
 
 module.exports.addSpartanZeroWithValueToWallet = (wallet, spartanZero) => {
-  console.log("Before adding: ");
-  console.log(wallet);
+  // console.log("Before adding: ");
+  // console.log(wallet);
   wallet.push([spartanZero.v, spartanZero]);
   wallet.sort(OrderSpartanZero);
-  console.log("After adding: ");
-  console.log(wallet);
+  // console.log("After adding: ");
+  // console.log(wallet);
   return wallet;
 };
 

@@ -40,6 +40,9 @@ class SpartanZeroClient extends Client {
     this.on(SpartanZeroBlockchain.PROOF_FOUND, this.receiveBlock);
     this.on(SpartanZeroBlockchain.RECEIVE_TRANSACTION, this.receiveTransaction);
 
+    // DESIGNDEC: used to see if coin due to receive has been found. using a map rather than a single bool val coz might happen that receiver is looking for multiple coins so to keep track of all coins
+    this.coinFound = new Map();
+
     // to maintain public-private keys relationship even when new address is generated
     this.addressBindings = {};
 
@@ -146,6 +149,7 @@ class SpartanZeroClient extends Client {
    * @param {Number} amount
    */
   async spend(receiver, amount) {
+    //DESIGNDEC: Doing a check also gives a side-effect of checking if a coin-change added by the spender previously has been committed to the ledger successfully and in turn also updates the balance accordingly
     let currBalance = this.getBalance();
     if (currBalance < amount) {
       throw new Error(
@@ -269,8 +273,40 @@ class SpartanZeroClient extends Client {
    *
    * @returns
    */
+
   async receiveTransaction(msgInfo) {
-    console.log("Received triggered for "+this.name);
+    let coin = msgInfo.coin;
+    let cm = coin.cm;
+    this.coinFound.set(cm, false);
+    let timerId = setInterval(() => {
+      if (this.checkIfCmInLedger(cm)) {
+        console.log("Transaction Found by Receiver!!!!!!");
+        this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
+          this.spartanZeroes,
+          coin
+        );
+        clearInterval(timerId);
+      }
+    }, 5000);
+    // /return;
+  }
+
+  checkIfCmInLedger(cm) {
+    let lastBlock = this.lastConfirmedBlock;
+    console.log("I am " + this.name);
+    if (
+      SpartanZeroUtils.bufferExistsInList(
+        this.lastConfirmedBlock.cmLedger,
+        Buffer.from(cm)
+      )
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  receiveTransactionLogic(msgInfo) {
+    console.log("Received triggered for " + this.name);
     //console.log(this.name+" is try");
     let txId = msgInfo.txId;
     let coin = msgInfo.coin;
@@ -298,16 +334,55 @@ class SpartanZeroClient extends Client {
     //   }
     // let lastBlock = this.lastConfirmedBlock;
     // if (lastBlock.transactions.has(txId)) {
-    console.log("Transaction Found by Receiver!!!!!!");
-    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
-      this.spartanZeroes,
-      coin
-    );
-    // /COIN_NOT_FOUND = false;
-    return;
+    // console.log("Transaction Found by Receiver!!!!!!");
+    // this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
+    //   this.spartanZeroes,
+    //   coin
+    // );
+    // // /COIN_NOT_FOUND = false;
+    // return;
     // }
     // this.receiveTransaction(msgInfo);
   }
+  // async receiveTransaction(msgInfo) {
+  //   console.log("Received triggered for " + this.name);
+  //   //console.log(this.name+" is try");
+  //   let txId = msgInfo.txId;
+  //   let coin = msgInfo.coin;
+
+  //   let COIN_NOT_FOUND = true;
+  //   //let blockWhereTransExist;
+  //   // while (COIN_NOT_FOUND) {
+  //   //   console.log(this.name + " is finding the blocks again");
+  //   //   // for (let index = this.blocks.size-1; index >= 0; index--) {
+  //   //   //   let currBlock = SpartanZeroUtils.getMapValueAtIndex(this.blocks, index);
+  //   //   //   if (currBlock.transactions.has(txId)) {
+  //   //   //     console.log("Transaction Found by Receiver!!!!!!");
+  //   //   //     COIN_NOT_FOUND = false;
+  //   //   //     break;
+  //   //   //   }
+  //   //   //   if (!COIN_NOT_FOUND){
+  //   //   //     break;
+  //   //   //   }
+  //   //   // }
+  //   //   let lastBlock = this.lastConfirmedBlock;
+  //   //   if (lastBlock.transactions.has(txId)) {
+  //   //         console.log("Transaction Found by Receiver!!!!!!");
+  //   //         COIN_NOT_FOUND = false;
+  //   //         break;
+  //   //   }
+  //   // let lastBlock = this.lastConfirmedBlock;
+  //   // if (lastBlock.transactions.has(txId)) {
+  //   console.log("Transaction Found by Receiver!!!!!!");
+  //   this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
+  //     this.spartanZeroes,
+  //     coin
+  //   );
+  //   // /COIN_NOT_FOUND = false;
+  //   return;
+  //   // }
+  //   // this.receiveTransaction(msgInfo);
+  // }
 
   //HACK: could have used. but as zk-spartan-cash has 2 transaction classes,
   // the cfg.transactionClass in Blockchain class is not which is reqd for parent method
