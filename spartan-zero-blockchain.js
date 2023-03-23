@@ -3,6 +3,7 @@
 // Network message constants
 const MISSING_BLOCK = "MISSING_BLOCK";
 const POST_TRANSACTION = "POST_TRANSACTION";
+const RECEIVE_TRANSACTION = "RECEIVE_TRANSACTION"
 const PROOF_FOUND = "PROOF_FOUND";
 const START_MINING = "START_MINING";
 
@@ -51,8 +52,8 @@ class SpartanZeroBlockchain extends Blockchain {
       }
     }
 
-    Blockchain.cfg.mintTransactionClass = cfg.mintTransactionClass;
-    Blockchain.cfg.pourTransactionClass = cfg.pourTransactionClass;
+    SpartanZeroBlockchain.cfg.mintTransactionClass = cfg.mintTransactionClass;
+    SpartanZeroBlockchain.cfg.pourTransactionClass = cfg.pourTransactionClass;
     for (let prop in Blockchain.cfg) {
       console.log(prop + ": " + Blockchain.cfg.prop);
     }
@@ -62,16 +63,16 @@ class SpartanZeroBlockchain extends Blockchain {
   }
   static makeTransaction(o) {
     if (
-      o instanceof Blockchain.cfg.mintTransactionClass ||
-      o instanceof Blockchain.cfg.pourTransactionClass
+      o instanceof SpartanZeroBlockchain.cfg.mintTransactionClass ||
+      o instanceof SpartanZeroBlockchain.cfg.pourTransactionClass
     ) {
       return o;
     }
     //BETTERCODE: setting class based on object property
     if (Object.hasOwn(o, "sn")) {
-      return new Blockchain.cfg.pourTransactionClass(o);
+      return new SpartanZeroBlockchain.cfg.pourTransactionClass(o);
     }
-    return new Blockchain.cfg.mintTransactionClass(o);
+    return new SpartanZeroBlockchain.cfg.mintTransactionClass(o);
   }
 
   /**
@@ -82,12 +83,12 @@ class SpartanZeroBlockchain extends Blockchain {
    * @returns {SpartanZeroBlock}
    */
   static deserializeBlock(o) {
-    if (o instanceof Blockchain.cfg.blockClass) {
+    if (o instanceof SpartanZeroBlockchain.cfg.blockClass) {
       console.log("already a block");
       return o;
     }
 
-    let block = new Blockchain.cfg.blockClass();
+    let block = new SpartanZeroBlockchain.cfg.blockClass();
     block.chainLength = parseInt(o.chainLength, 10);
     block.timestamp = o.timestamp;
     block.prevBlockHash = o.prevBlockHash;
@@ -122,8 +123,8 @@ class SpartanZeroBlockchain extends Blockchain {
    */
   static deserializeTransaction(o) {
     if (
-      o instanceof Blockchain.cfg.mintTransactionClass ||
-      o instanceof Blockchain.cfg.pourTransactionClass
+      o instanceof SpartanZeroBlockchain.cfg.mintTransactionClass ||
+      o instanceof SpartanZeroBlockchain.cfg.pourTransactionClass
     ) {
       return o;
     }
@@ -131,9 +132,9 @@ class SpartanZeroBlockchain extends Blockchain {
     //BETTERCODE: setting class based on object property
     if (Object.hasOwn(o, "sn")) {
       console.log("Pour Transaction found!!!!!!");
-      return new Blockchain.cfg.pourTransactionClass(o);
+      return new SpartanZeroBlockchain.cfg.pourTransactionClass(o);
     }
-    return new Blockchain.cfg.mintTransactionClass(o);
+    return new SpartanZeroBlockchain.cfg.mintTransactionClass(o);
   }
 }
 

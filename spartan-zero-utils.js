@@ -80,7 +80,7 @@ module.exports.prf = (x, type, z) => {
   }
 };
 
-module.exports.OrderSpartanZero = (a, b) => {
+let OrderSpartanZero = (a, b) => {
   return a[0] - b[0];
 };
 
@@ -169,6 +169,25 @@ let printObjectProperties = (obj) => {
   }
 };
 
+module.exports.getMapValueAtIndex = (map, index) => {
+  let key = Array.from(map.keys())[index];
+  return map.get(key);
+};
+
+module.exports.printWallet = (client) => {
+  let wallet = client.spartanZeroes;
+  for (const coin of wallet){
+    printObjectProperties(coin);
+  }
+};
+
+module.exports.addSpartanZeroWithValueToWallet = (wallet, spartanZeroWithValue) => {
+  wallet.push(spartanZeroWithValue);
+  wallet.sort(OrderSpartanZero);
+  return wallet;
+};
+
+
 module.exports.ADDR = ADDR;
 module.exports.SN = SN;
 module.exports.PK = PK;
@@ -182,3 +201,4 @@ module.exports.getRand64Num = getRand64Num;
 module.exports.bufferExistsInList = bufferExistsInList;
 module.exports.bufferToBitArray = bufferToBitArray;
 module.exports.printObjectProperties = printObjectProperties;
+module.exports.OrderSpartanZero = OrderSpartanZero;

@@ -17,8 +17,6 @@ const { TranPour } = require("./spartan-zero-tran-pour.js");
  * A SpartanZeroClient is capable of minting coins and sending/receiving minted coins
  */
 class SpartanZeroClient extends Client {
-
-
   #privDecKey;
   //CITE: spartan-gold's Client class description
   /**
@@ -68,10 +66,11 @@ class SpartanZeroClient extends Client {
     //this.spartanZeroes.push(mintedCoin);
     //BETTERCODE: currently sorting using comparator after adding. Change so that element gets added into a sorted list and sorts itself during insertion
 
-    this.spartanZeroes.push([value, mintedCoin]);
-    console.log("After push: ");
-    console.log(this.spartanZeroes + "\n\n");
-    this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
+    // this.spartanZeroes.push([value, mintedCoin]);
+    // console.log("After push: ");
+    // console.log(this.spartanZeroes + "\n\n");
+    // this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
+    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(this.spartanZeroes, [value, mintedCoin]);
     console.log("CM for newly minted coin: ");
     console.log(cm);
 
@@ -108,7 +107,7 @@ class SpartanZeroClient extends Client {
 
     this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
 
-    //return tx;
+    return tx;
   }
 
   postGenericTransaction(txData) {
@@ -133,6 +132,8 @@ class SpartanZeroClient extends Client {
     //this.nonce++;
 
     this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
+
+    return tx;
   }
 
   /**
@@ -179,13 +180,11 @@ class SpartanZeroClient extends Client {
     let change = oldSpartanZero.v - amount;
     let coinToSpend = SpartanZeroUtils.createNewSpartanZero(receiver, amount);
     // remaining amount spender needs to send back to themselves
-    let coinChange = SpartanZeroUtils.createNewSpartanZero(
-      this,
-      change
-    );
+    let coinChange = SpartanZeroUtils.createNewSpartanZero(this, change);
 
     // client needs to get back coinChange. so we can store coinChange in client's list and then check if transaction got validated while doing getBalance()
-    this.spartanZeroes.push([change, coinChange]);
+    //this.spartanZeroes.push([change, coinChange]);
+    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(this.spartanZeroes, [change, coinChange]);
     console.log("After getting back change: ");
     console.log(this.spartanZeroes);
     console.log("\n\n");
@@ -244,7 +243,22 @@ class SpartanZeroClient extends Client {
    *
    * @returns
    */
-  async receiveTransaction() {}
+  async receiveTransaction(msgInfo) {
+    let txId = msgInfo.txId;
+    let coin = msgInfo.coin;
+
+    let COIN_NOT_FOUND = true;
+    let blockWhereTransExist;
+    while (COIN_NOT_FOUND) {
+      for (let index = this.blocks.size; index >= 0; index--) {
+        let currBlock = SpartanZeroUtils.getMapValueAtIndex(this.blocks, index);
+        if (currBlock.transactions.has(txId)) {
+          console.log("Transaction Found by Receiver!!!!!!");
+          break;
+        }
+      }
+    }
+  }
 
   //HACK: could have used. but as zk-spartan-cash has 2 transaction classes,
   // the cfg.transactionClass in Blockchain class is not which is reqd for parent method
@@ -415,10 +429,10 @@ class SpartanZeroClient extends Client {
     this.addressBindings[this.keyPair.public] = this.keyPair.private;
   }
 
-  generateEncDecKeyPair(){
+  generateEncDecKeyPair() {
     let encDecKeyPair = SpartanZeroUtils.generateKeypair();
     this.pubEncKey = encDecKeyPair.public;
-    // DESIGNDEC: marking private decryption key as private using '#' 
+    // DESIGNDEC: marking private decryption key as private using '#'
     this.#privDecKey = encDecKeyPair.private;
     console.log("Pub priv enc dec keys");
     console.log(this.pubEncKey);
