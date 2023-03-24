@@ -106,11 +106,15 @@ class SpartanZeroBlockchain extends Blockchain {
     //BUG: have hardcoded snLedger and cmLedger as there was error coz o didn't have them. ask why so
     //block.snLedger = [];
     for (let i = 0; i < o.snLedger.length; i++) {
-      block.snLedger.push(Buffer.from(o.snLedger[i]));
+      block.snLedger.push(o.snLedger[i]);
     }
     //block.cmLedger = [];
+    // for (let i = 0; i < o.cmLedger.length; i++) {
+    //   block.cmLedger.push(Buffer.from(o.cmLedger[i]));
+    // }
+
     for (let i = 0; i < o.cmLedger.length; i++) {
-      block.cmLedger.push(Buffer.from(o.cmLedger[i]));
+      block.cmLedger.push(o.cmLedger[i]);
     }
 
     return block;

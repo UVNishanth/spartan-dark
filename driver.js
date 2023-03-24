@@ -94,9 +94,15 @@ setTimeout(() => {
   bob.spend(alice, 20);
 }, 100);
 
+//FLAW: Alice cannot spend here coz they havem't yet received he amount sent previously by Bob and Charlie. So they do not have sufficient balance. this is happening coz javascript is single-threaded and so for alice to spend, they would need the previous transactions to have gotten completed
+setTimeout(() => {
+  alice.spend(bob, 4);
+}, 100);
+
 
 
 //ASK: too large a timeout. Ask how to trigger after spend is done.
+//FLAW: the timeout increases with the amount of spending added due to the time the proving method takes
 setTimeout(() => {
   console.log();
   console.log(`Minnie has a chain of length ${minnie.currentBlock.chainLength}`);
@@ -114,7 +120,7 @@ setTimeout(() => {
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
-}, 40000);
+}, 50000);
 
 
 // // Transfer some money around.
