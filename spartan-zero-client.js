@@ -78,8 +78,8 @@ class SpartanZeroClient extends Client {
       this.spartanZeroes,
       mintedCoin
     );
-    console.log("CM for newly minted coin: ");
-    console.log(cm);
+    // console.log("CM for newly minted coin: ");
+    // console.log(cm);
 
     // Create and broadcast the transaction.
     this.postGenericTransaction({
@@ -162,21 +162,10 @@ class SpartanZeroClient extends Client {
       amount
     );
 
-    console.log("spartanZeroes list before deletion of old coin");
-    console.log(this.spartanZeroes);
-
     this.spartanZeroes = this.spartanZeroes.filter((entry) => {
       let coin = entry[1];
       return coin.cm !== oldSpartanZero.cm;
     });
-
-    console.log("cm of old coin deleted");
-    console.log(oldSpartanZero.cm);
-    console.log("Updated spartanZeroes list after spending");
-    console.log(this.spartanZeroes);
-
-    console.log("Printing old coins props...");
-    SpartanZeroUtils.printObjectProperties(oldSpartanZero);
 
     let rhoOld = oldSpartanZero.rho;
     // get addrSK of old coin
@@ -196,9 +185,9 @@ class SpartanZeroClient extends Client {
       this.spartanZeroes,
       coinChange
     );
-    console.log("After getting back change: ");
-    console.log(this.spartanZeroes);
-    console.log("\n\n");
+    // console.log("After getting back change: ");
+    // console.log(this.spartanZeroes);
+    // console.log("\n\n");
     this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
 
     const sigKeys = SpartanZeroUtils.generateKeypair();
@@ -206,6 +195,27 @@ class SpartanZeroClient extends Client {
     let skSig = sigKeys.private;
     let hSig = SpartanZeroUtils.hash(pkSig);
     let h_ = SpartanZeroUtils.prf(hSig, SpartanZeroUtils.PK, addrSKOld);
+    let cmOldInBase64 = oldSpartanZero.cm.toString('base64');
+    let cmLedger = this.lastConfirmedBlock.cmLedger;
+    let cmOldPositionInLedger = cmLedger.findIndex((x) => x === cmOldInBase64);
+    let cmLedgerSize = cmLedger.length;
+    let bufferCmLedger = [];
+    for (let cm of cmLedger) {
+      bufferCmLedger.push(Buffer.from(cm, "base64"));
+    }
+    //bufferCmLedger = Buffer.from(bufferCmLedger);
+    let cmLedgerArray = [];
+    for (let cmBuffer of bufferCmLedger) {
+      let cmBitArray = SpartanZeroUtils.bufferToBitArray(cmBuffer);
+      for (let x of cmBitArray) {
+        cmLedgerArray.push(x);
+      }
+    }
+    let paddingBits = 256 - (cmLedgerSize*16);
+    for(let i=0; i < paddingBits; i++){
+      cmLedgerArray.push(0);
+    }
+    //let cmLedgerArray = SpartanZeroUtils.bufferToBitArray(bufferCmLedger);
     let circuitInput = {
       k: SpartanZeroUtils.bufferToBitArray(
         SpartanZeroUtils.comm(
@@ -214,9 +224,16 @@ class SpartanZeroClient extends Client {
           oldSpartanZero.rho
         )
       ),
+
       hashValue: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.hashedV),
       s: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.s),
       cm: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.cm),
+      cmLedger: cmLedgerArray,
+      cmLedgerSize : cmLedgerSize,
+      positionOfCm : cmOldPositionInLedger,
+      v1New : coinToSpend.v,
+      v2New : coinChange.v,
+      vOld : oldSpartanZero.v
     };
 
     let proofPacket = await snarkjs.groth16.fullProve(
@@ -225,19 +242,16 @@ class SpartanZeroClient extends Client {
       "circuit_final.zkey"
     );
 
-    console.log("For pour: generated 2 new coins of cm: ");
-    console.log(coinToSpend.cm);
-    console.log(coinChange.cm);
+    // console.log("For pour: generated 2 new coins of cm: ");
+    // console.log(coinToSpend.cm);
+    // console.log(coinChange.cm);
 
     let tx = this.postGenericTransaction({
       sn: snOld,
       cm1New: coinToSpend.cm,
       cm2New: coinChange.cm,
-      pkSig: pkSig,
-      h: h_,
       proof: proofPacket,
       //TODO: Generate proper sigma. now using placeholder as we aren't using it for now
-      sigma: "",
     });
 
     //Send notification to receiver to check for pour transaction on the ledger
@@ -294,12 +308,12 @@ class SpartanZeroClient extends Client {
 
   checkIfCmInLedger(cm) {
     let lastBlock = this.lastConfirmedBlock;
-    console.log("I am " + this.name);
-    console.log("Last Block Ledger");
-    console.log(lastBlock.cmLedger);
+    // console.log("I am " + this.name);
+    // console.log("Last Block Ledger");
+    // console.log(lastBlock.cmLedger);
     let cmString = Buffer.from(cm).toString("base64");
-    console.log("hash to compare");
-    console.log(cmString);
+    // console.log("hash to compare");
+    // console.log(cmString);
     // if (
     //   SpartanZeroUtils.bufferExistsInList(
     //     this.lastConfirmedBlock.cmLedger,
@@ -312,7 +326,7 @@ class SpartanZeroClient extends Client {
   }
 
   receiveTransactionLogic(msgInfo) {
-    console.log("Received triggered for " + this.name);
+    //console.log("Received triggered for " + this.name);
     //console.log(this.name+" is try");
     let txId = msgInfo.txId;
     let coin = msgInfo.coin;
@@ -489,7 +503,7 @@ class SpartanZeroClient extends Client {
     //     }
     //   }
     // }
-    console.log("before check: " + this.spartanZeroes);
+    //console.log("before check: " + this.spartanZeroes);
     // this.spartanZeroes = this.spartanZeroes.filter((entry) =>{
     //   let coin = entry[1];
     //   console.log("coin cm is: ");
@@ -499,13 +513,13 @@ class SpartanZeroClient extends Client {
     //   return lastBlock.cmLedger.includes(Buffer.from(coin.cm));
     // });
     let iter = this.spartanZeroes.length;
-    console.log("lastblock cm ledger: ");
-    console.log(lastBlock.cmLedger);
+    // console.log("lastblock cm ledger: ");
+    // console.log(lastBlock.cmLedger);
     //BETTERCODE: using 2 loops to see if coin cm exists in ledger as a simple filtering like the one above does not seem to work.
     while (iter--) {
       let coin = this.spartanZeroes[iter][1];
-      console.log("coin cm is: ");
-      console.log(coin.cm);
+      // console.log("coin cm is: ");
+      // console.log(coin.cm);
 
       // let present = SpartanZeroUtils.bufferExistsInList(
       //   lastBlock.cmLedger,
@@ -527,7 +541,7 @@ class SpartanZeroClient extends Client {
         this.spartanZeroes.splice(iter, 1);
       }
     }
-    console.log("after check: " + this.spartanZeroes);
+    //console.log("after check: " + this.spartanZeroes);
   }
 
   /**
@@ -566,10 +580,10 @@ class SpartanZeroClient extends Client {
     this.pubEncKey = encDecKeyPair.public;
     // DESIGNDEC: marking private decryption key as private using '#'
     this.#privDecKey = encDecKeyPair.private;
-    console.log("Pub priv enc dec keys");
-    console.log(this.pubEncKey);
-    console.log(this.#privDecKey);
-    console.log();
+    // console.log("Pub priv enc dec keys");
+    // console.log(this.pubEncKey);
+    // console.log(this.#privDecKey);
+    // console.log();
   }
 }
 

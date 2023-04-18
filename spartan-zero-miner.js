@@ -73,9 +73,9 @@ module.exports = class SpartanZeroMiner extends SpartanZeroClient {
     });
     this.transactions.clear();
 
-    this.currentBlock.cmLedger.forEach((x)=>{
-      console.log(x);
-    });
+    // this.currentBlock.cmLedger.forEach((x)=>{
+    //   console.log(x);
+    // });
 
     // Start looking for a proof at 0.
     this.currentBlock.proof = 0;

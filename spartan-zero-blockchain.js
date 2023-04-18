@@ -6,6 +6,7 @@ const POST_TRANSACTION = "POST_TRANSACTION";
 const RECEIVE_TRANSACTION = "RECEIVE_TRANSACTION"
 const PROOF_FOUND = "PROOF_FOUND";
 const START_MINING = "START_MINING";
+const MAX_CM_LEDGER_BITS = 256;
 
 // Constants for mining
 const NUM_ROUNDS_MINING = 2000;
@@ -56,9 +57,9 @@ class SpartanZeroBlockchain extends Blockchain {
 
     SpartanZeroBlockchain.cfg.mintTransactionClass = cfg.mintTransactionClass;
     SpartanZeroBlockchain.cfg.pourTransactionClass = cfg.pourTransactionClass;
-    for (let prop in Blockchain.cfg) {
-      console.log(prop + ": " + Blockchain.cfg.prop);
-    }
+    // for (let prop in Blockchain.cfg) {
+    //   console.log(prop + ": " + Blockchain.cfg.prop);
+    // }
     //throw new Error();
     //FileSystem.
     return block;
@@ -86,7 +87,7 @@ class SpartanZeroBlockchain extends Blockchain {
    */
   static deserializeBlock(o) {
     if (o instanceof SpartanZeroBlockchain.cfg.blockClass) {
-      console.log("already a block");
+      //console.log("already a block");
       return o;
     }
 
@@ -137,7 +138,7 @@ class SpartanZeroBlockchain extends Blockchain {
 
     //BETTERCODE: setting class based on object property
     if (Object.hasOwn(o, "sn")) {
-      console.log("Pour Transaction found!!!!!!");
+      //console.log("Pour Transaction found!!!!!!");
       return new SpartanZeroBlockchain.cfg.pourTransactionClass(o);
     }
     return new SpartanZeroBlockchain.cfg.mintTransactionClass(o);

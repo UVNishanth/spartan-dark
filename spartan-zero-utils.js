@@ -12,6 +12,8 @@ const ADDR = "addr";
 const SN = "sn";
 const PK = "pk";
 
+const BYTE_SIZE = 2;
+
 let sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // let gen = function (seed = Date.now()) {
@@ -38,11 +40,11 @@ let getRand256Num = function () {
   return crypto.randomBytes(32);
 };
 
-let getRand64Num = function () {
+let getRandNum = function () {
   //let randomBytes = new Uint8Array(32);
   //getRandomValues(randomBytes);
   //return Buffer.alloc(32, randomBytes);
-  return crypto.randomBytes(8);
+  return crypto.randomBytes(BYTE_SIZE);
 };
 
 
@@ -93,10 +95,10 @@ let OrderSpartanZero = (a, b) => {
 // BETTERCODE:returning smallest coin > val. using linear search. replace with optimized code
 // Finding > and not >= so that we always have two coins generated. if >=, then it might return a coin which is equal and then we won't be able to create 2 coins
 module.exports.findAppropSpartanZero = (arr, val) => {
-  console.log("coin list is: ");
-  console.log(arr);
-  console.log("Val is: ");
-  console.log(val);
+  // console.log("coin list is: ");
+  // console.log(arr);
+  // console.log("Val is: ");
+  // console.log(val);
   for (const [v, coin] of arr) {
     if (v > val) {
       return coin;
@@ -113,27 +115,13 @@ module.exports.findAppropSpartanZero = (arr, val) => {
  */
 
 module.exports.createNewSpartanZero = (owner, value) => {
-  //let rho = gen();
-  let rho = getRand64Num();
-  //let r = gen();
-  let r = getRand64Num();
-  //let bitArrR = r.toString(2);
-  //console.log("Actual r: "+r);
-  //console.log("bitarray r: "+bitArrR);
-  //let s = gen();
-  let s = getRand64Num();
+  let rho = getRandNum();
+  let r = getRandNum();
+  let s = getRandNum();
 
   let hashValue = hash(value + "");
-  console.log(hashValue.length);
-
-  //let k = utils.hash(this.keyPair.public + r + rho+'');
-  // hashing addrPK so that input to hash is 256-bit. apk is 512-bit. Read points-to-be-noted
-  //let hashAddrPK = utils.hash(owner.addrPK);
   let hashAddrPK = hash(owner.addrPK);
-  console.log(hashAddrPK.length);
   let k = comm(hashAddrPK, r, rho);
-  //let stringS = s.toString();
-  //let cm = comm(hashValue, k, s.toString());
   let cm = comm(hashValue, k, s);
 
   return new SpartanZero(owner.addrPK, value, hashValue, rho, r, s, cm, k);
@@ -142,8 +130,8 @@ module.exports.createNewSpartanZero = (owner, value) => {
 //DESIGNDEC: Writing own hash func coz spartan-gold's hash() creates a a hash digest of size 512 bits, while we have standardized 256-bit hashes for ease of use in circuits
 let hash = (s) => {
   let res = crypto.createHash("sha256").update(s).digest();
-  res = Uint8Array.prototype.slice.call(res, 0, 8);
-  console.log(Buffer.byteLength(res));
+  res = Uint8Array.prototype.slice.call(res, 0, BYTE_SIZE);
+  //console.log(Buffer.byteLength(res));
   return res;
 };
 
@@ -157,7 +145,6 @@ let hash = (s) => {
 let bufferExistsInList = (list, buff) => {
   for (const el of list) {
     if (el.equals(buff)) {
-      //let index = this.spartanZeroes.indexOf(iter);
       return 1;
     }
   }
@@ -165,9 +152,9 @@ let bufferExistsInList = (list, buff) => {
 };
 
 let printObjectProperties = (obj) => {
-  for(let props in obj){
-    console.log(props);
-  }
+  // for(let props in obj){
+  //   console.log(props);
+  // }
 };
 
 module.exports.getMapValueAtIndex = (map, index) => {
@@ -183,12 +170,8 @@ module.exports.printWallet = (client) => {
 };
 
 module.exports.addSpartanZeroWithValueToWallet = (wallet, spartanZero) => {
-  // console.log("Before adding: ");
-  // console.log(wallet);
   wallet.push([spartanZero.v, spartanZero]);
   wallet.sort(OrderSpartanZero);
-  // console.log("After adding: ");
-  // console.log(wallet);
   return wallet;
 };
 
@@ -196,13 +179,11 @@ module.exports.addSpartanZeroWithValueToWallet = (wallet, spartanZero) => {
 module.exports.ADDR = ADDR;
 module.exports.SN = SN;
 module.exports.PK = PK;
-//module.exports.gen = gen;
 module.exports.comm = comm;
-//module.exports.hash = utils.hash;
 module.exports.hash = hash;
 module.exports.generateKeypair = utils.generateKeypair;
 module.exports.calcAddress = utils.calcAddress;
-module.exports.getRand64Num = getRand64Num;
+module.exports.getRandNum = getRandNum;
 module.exports.bufferExistsInList = bufferExistsInList;
 module.exports.bufferToBitArray = bufferToBitArray;
 module.exports.printObjectProperties = printObjectProperties;
