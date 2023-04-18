@@ -211,7 +211,7 @@ class SpartanZeroClient extends Client {
         cmLedgerArray.push(x);
       }
     }
-    let paddingBits = 256 - (cmLedgerSize*16);
+    let paddingBits = (SpartanZeroUtils.CMLEDGER_MAXSIZE * (SpartanZeroUtils.BYTE_SIZE * 8)) - (cmLedgerSize*(SpartanZeroUtils.BYTE_SIZE * 8));
     for(let i=0; i < paddingBits; i++){
       cmLedgerArray.push(0);
     }

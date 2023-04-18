@@ -188,3 +188,5 @@ module.exports.bufferExistsInList = bufferExistsInList;
 module.exports.bufferToBitArray = bufferToBitArray;
 module.exports.printObjectProperties = printObjectProperties;
 module.exports.OrderSpartanZero = OrderSpartanZero;
+module.exports.BYTE_SIZE = BYTE_SIZE;
+module.exports.CMLEDGER_MAXSIZE = 16;
