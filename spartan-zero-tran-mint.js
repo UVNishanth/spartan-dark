@@ -22,9 +22,8 @@ const TX_CONST = "TX";
 // are anonymous. So no sender validation reqd
 class TranMint {
 
-    constructor ({cm, v, hashv, k, s}){
+    constructor ({cm, hashv, k, s}){
         this.cm = cm;
-        this.v = v;
         this.hashv = hashv;
         this.k = k;
         this.s = s;
@@ -39,7 +38,7 @@ class TranMint {
     get id() {
         return utils.hash(TX_CONST + JSON.stringify({
         cm: this.cm,
-        v: this.v,
+        v: this.hashv,
         k: this.k,
         s: this.s
         // no transaction fee during minting reqd
