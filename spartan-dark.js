@@ -14,7 +14,7 @@ r = trapdoor generated for the coin. Also, the witness that the spender has to p
 */
 
 
-class SpartanZero {
+class SpartanDark {
     constructor(addrPK, v, hashedV, rho, r, s, cm, k){
         this.cm = Buffer.from(cm);
         this.v = v;
@@ -28,4 +28,4 @@ class SpartanZero {
     }
 }
 
-module.exports.SpartanZero = SpartanZero;
+module.exports.SpartanDark = SpartanDark;

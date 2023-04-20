@@ -3,9 +3,9 @@
 const aleaRNGFactory = require("number-generator/lib/aleaRNGFactory");
 
 const { utils } = require("spartan-gold");
-const { SpartanZero } = require("./spartan-zero");
+const { SpartanDark } = require("./spartan-dark");
 const crypto = require("crypto");
-//const { SpartanZeroClient } = require("./spartan-zero-client");
+//const { SpartanDarkClient } = require("./spartan-dark-client");
 
 // creating constansts for prf types
 const ADDR = "addr";
@@ -82,19 +82,19 @@ module.exports.prf = (x, type, z) => {
   }
 };
 
-let OrderSpartanZero = (a, b) => {
+let OrderSpartanDark = (a, b) => {
   return a[0] - b[0];
 };
 
 /**
  *
- * @param {SpartanZero[]} arr spartanzero list a client has
+ * @param {SpartanDark[]} arr SpartanDark list a client has
  * @param {Number} val amount a client needs to send
- * @returns {SpartanZero}
+ * @returns {SpartanDark}
  */
 // BETTERCODE:returning smallest coin > val. using linear search. replace with optimized code
 // Finding > and not >= so that we always have two coins generated. if >=, then it might return a coin which is equal and then we won't be able to create 2 coins
-module.exports.findAppropSpartanZero = (arr, val) => {
+module.exports.findAppropSpartanDark = (arr, val) => {
   // console.log("coin list is: ");
   // console.log(arr);
   // console.log("Val is: ");
@@ -109,12 +109,12 @@ module.exports.findAppropSpartanZero = (arr, val) => {
 
 /**
  *
- * @param {SpartanZeroClient} owner client who owns the created SpartanZero
- * @param {SpartanZero} value value of created SpartanZero
- * @returns {SpartanZero} return newly created SpartanZero
+ * @param {SpartanDarkClient} owner client who owns the created SpartanDark
+ * @param {SpartanDark} value value of created SpartanDark
+ * @returns {SpartanDark} return newly created SpartanDark
  */
 
-module.exports.createNewSpartanZero = (owner, value) => {
+module.exports.createNewSpartanDark = (owner, value) => {
   let rho = getRandNum();
   let r = getRandNum();
   let s = getRandNum();
@@ -124,7 +124,7 @@ module.exports.createNewSpartanZero = (owner, value) => {
   let k = comm(hashAddrPK, r, rho);
   let cm = comm(hashValue, k, s);
 
-  return new SpartanZero(owner.addrPK, value, hashValue, rho, r, s, cm, k);
+  return new SpartanDark(owner.addrPK, value, hashValue, rho, r, s, cm, k);
 };
 
 //DESIGNDEC: Writing own hash func coz spartan-gold's hash() creates a a hash digest of size 512 bits, while we have standardized 256-bit hashes for ease of use in circuits
@@ -163,15 +163,15 @@ module.exports.getMapValueAtIndex = (map, index) => {
 };
 
 module.exports.printWallet = (client) => {
-  let wallet = client.spartanZeroes;
+  let wallet = client.SpartanDarkes;
   for (const coin of wallet){
     printObjectProperties(coin);
   }
 };
 
-module.exports.addSpartanZeroWithValueToWallet = (wallet, spartanZero) => {
-  wallet.push([spartanZero.v, spartanZero]);
-  wallet.sort(OrderSpartanZero);
+module.exports.addSpartanDarkWithValueToWallet = (wallet, SpartanDark) => {
+  wallet.push([SpartanDark.v, SpartanDark]);
+  wallet.sort(OrderSpartanDark);
   return wallet;
 };
 
@@ -187,6 +187,6 @@ module.exports.getRandNum = getRandNum;
 module.exports.bufferExistsInList = bufferExistsInList;
 module.exports.bufferToBitArray = bufferToBitArray;
 module.exports.printObjectProperties = printObjectProperties;
-module.exports.OrderSpartanZero = OrderSpartanZero;
+module.exports.OrderSpartanDark = OrderSpartanDark;
 module.exports.BYTE_SIZE = BYTE_SIZE;
 module.exports.CMLEDGER_MAXSIZE = 16;

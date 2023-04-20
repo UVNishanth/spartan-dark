@@ -1,7 +1,7 @@
 "use strict";
 
-let { SpartanZeroClient } = require('./spartan-zero-client.js');
-let { SpartanZeroBlockchain } = require('./spartan-zero-blockchain.js');
+let { SpartanDarkClient } = require('./spartan-dark-client.js');
+let { SpartanDarkBlockchain } = require('./spartan-dark-blockchain.js');
 
 let { Blockchain } = require('spartan-gold');
 
@@ -9,7 +9,7 @@ let { Blockchain } = require('spartan-gold');
  * Miners are clients, but they also mine blocks looking for "proofs".
  */
 // BETTERCODE: most functions same as vanilla miner.
-module.exports = class SpartanZeroMiner extends SpartanZeroClient {
+module.exports = class SpartanDarkMiner extends SpartanDarkClient {
 
   /**
    * When a new miner is created, but the PoW search is **not** yet started.
@@ -26,7 +26,7 @@ module.exports = class SpartanZeroMiner extends SpartanZeroClient {
    *      for messages.  (In single-threaded mode with FakeNet, this parameter can
    *      simulate miners with more or less mining power.)
    */
-  constructor({name, net, startingBlock, keyPair, miningRounds=SpartanZeroBlockchain.NUM_ROUNDS_MINING} = {}) {
+  constructor({name, net, startingBlock, keyPair, miningRounds=SpartanDarkBlockchain.NUM_ROUNDS_MINING} = {}) {
     super({name, net, startingBlock, keyPair});
     this.miningRounds=miningRounds;
 
@@ -40,10 +40,10 @@ module.exports = class SpartanZeroMiner extends SpartanZeroClient {
   initialize() {
     this.startNewSearch();
 
-    this.on(SpartanZeroBlockchain.START_MINING, this.findProof);
-    this.on(SpartanZeroBlockchain.POST_TRANSACTION, this.addTransaction);
+    this.on(SpartanDarkBlockchain.START_MINING, this.findProof);
+    this.on(SpartanDarkBlockchain.POST_TRANSACTION, this.addTransaction);
 
-    setTimeout(() => this.emit(SpartanZeroBlockchain.START_MINING), 0);
+    setTimeout(() => this.emit(SpartanDarkBlockchain.START_MINING), 0);
   }
 
   /**
@@ -105,7 +105,7 @@ module.exports = class SpartanZeroMiner extends SpartanZeroClient {
     // If we are testing, don't continue the search.
     if (!oneAndDone) {
       // Check if anyone has found a block, and then return to mining.
-      setTimeout(() => this.emit(SpartanZeroBlockchain.START_MINING), 0);
+      setTimeout(() => this.emit(SpartanDarkBlockchain.START_MINING), 0);
     }
   }
 
@@ -113,7 +113,7 @@ module.exports = class SpartanZeroMiner extends SpartanZeroClient {
    * Broadcast the block, with a valid proof included.
    */
   announceProof() {
-    this.net.broadcast(SpartanZeroBlockchain.PROOF_FOUND, this.currentBlock);
+    this.net.broadcast(SpartanDarkBlockchain.PROOF_FOUND, this.currentBlock);
   }
 
   /**
@@ -190,7 +190,7 @@ module.exports = class SpartanZeroMiner extends SpartanZeroClient {
    * @param {Transaction | String} tx - The transaction to add.
    */
   async addTransaction(tx) {
-    tx = SpartanZeroBlockchain.deserializeTransaction(tx);
+    tx = SpartanDarkBlockchain.deserializeTransaction(tx);
     let res = await this.currentBlock.verifyTransaction(tx);
     if (res){
         this.log("mint transaction verified, adding it to the current block");

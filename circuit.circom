@@ -4,7 +4,7 @@ include "node_modules/circomlib/circuits/sha256/sha256.circom";
 include "QuinSelector.circom";
 
 
-template VerifySpartanZero() {
+template VerifySpartanDark() {
 
     //DESIGNDEC reduced hash size from 256 to 16. We take the liberty of assuming that our blockchain is not getting attacked by external forces. So acc to the birthday paradox, a hash of size 64 bits should do just fine since our system is very small for now and only a few hashes are getting generated. Cite this reasoning in paper & during defense
     var HASH_LENGTH = 16;
@@ -48,4 +48,4 @@ template VerifySpartanZero() {
         cm[x] === quinSelector[x].out;
     }
 }
-component main {public [cmLedger, cmLedgerSize, hashValue, k, s]}= VerifySpartanZero();
+component main {public [cmLedger, cmLedgerSize, hashValue, k, s]}= VerifySpartanDark();

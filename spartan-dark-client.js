@@ -3,20 +3,20 @@
 const { Client, utils } = require("spartan-gold");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
-const { SpartanZeroBlockchain } = require("./spartan-zero-blockchain.js");
-const { SpartanZero } = require("./spartan-zero.js");
-const SpartanZeroUtils = require("./spartan-zero-utils.js");
-const { TranMint } = require("./spartan-zero-tran-mint.js");
-const { TranPour } = require("./spartan-zero-tran-pour.js");
+const { SpartanDarkBlockchain } = require("./spartan-dark-blockchain.js");
+const { SpartanDark } = require("./spartan-dark.js");
+const SpartanDarkUtils = require("./spartan-dark-utils.js");
+const { TranMint } = require("./spartan-dark-tran-mint.js");
+const { TranPour } = require("./spartan-dark-tran-pour.js");
 
 //TODO: add functionality to mint new coins after initializing blockchain makeGenesis so that
 // the associated balance is converted into coins which the client cna then spend. Which can then be
 // used to determine whether the client has enough funds to mint a coin of specified value and hence
 // avoiding generation of coins out of thin air
 /**
- * A SpartanZeroClient is capable of minting coins and sending/receiving minted coins
+ * A SpartanDarkClient is capable of minting coins and sending/receiving minted coins
  */
-class SpartanZeroClient extends Client {
+class SpartanDarkClient extends Client {
   #privDecKey;
   //CITE: spartan-gold's Client class description
   /**
@@ -34,11 +34,11 @@ class SpartanZeroClient extends Client {
   constructor({ name, net, startingBlock } = {}) {
     super({ name, net, startingBlock });
 
-    // spartanZeroes = (value, coin) []
+    // SpartanDarkes = (value, coin) []
     //DESIGNDEC: changing dict of cm -> coin to list of tuples (value, coin) coz list easier to sort than dict
-    this.spartanZeroes = [];
-    this.on(SpartanZeroBlockchain.PROOF_FOUND, this.receiveBlock);
-    this.on(SpartanZeroBlockchain.RECEIVE_TRANSACTION, this.receiveTransaction);
+    this.SpartanDarkes = [];
+    this.on(SpartanDarkBlockchain.PROOF_FOUND, this.receiveBlock);
+    this.on(SpartanDarkBlockchain.RECEIVE_TRANSACTION, this.receiveTransaction);
 
     // DESIGNDEC: used to see if coin due to receive has been found. using a map rather than a single bool val coz might happen that receiver is looking for multiple coins so to keep track of all coins
     this.coinFound = new Map();
@@ -64,18 +64,18 @@ class SpartanZeroClient extends Client {
    */
 
   mint(value) {
-    let mintedCoin = SpartanZeroUtils.createNewSpartanZero(this, value);
+    let mintedCoin = SpartanDarkUtils.createNewSpartanDark(this, value);
     let cm = Buffer.from(mintedCoin.cm);
 
-    //this.spartanZeroes.push(mintedCoin);
+    //this.SpartanDarkes.push(mintedCoin);
     //BETTERCODE: currently sorting using comparator after adding. Change so that element gets added into a sorted list and sorts itself during insertion
 
-    // this.spartanZeroes.push([value, mintedCoin]);
+    // this.SpartanDarkes.push([value, mintedCoin]);
     // console.log("After push: ");
-    // console.log(this.spartanZeroes + "\n\n");
-    // this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
-    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
-      this.spartanZeroes,
+    // console.log(this.SpartanDarkes + "\n\n");
+    // this.SpartanDarkes.sort(SpartanDarkUtils.OrderSpartanDark);
+    this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+      this.SpartanDarkes,
       mintedCoin
     );
     // console.log("CM for newly minted coin: ");
@@ -112,7 +112,7 @@ class SpartanZeroClient extends Client {
     //HIGHLIGHTS: nonce isn't utilized
     //this.nonce++;
 
-    this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
+    this.net.broadcast(SpartanDarkBlockchain.POST_TRANSACTION, tx);
 
     return tx;
   }
@@ -138,14 +138,14 @@ class SpartanZeroClient extends Client {
     //HIGHLIGHTS: nonce isn't utilized
     //this.nonce++;
 
-    this.net.broadcast(SpartanZeroBlockchain.POST_TRANSACTION, tx);
+    this.net.broadcast(SpartanDarkBlockchain.POST_TRANSACTION, tx);
 
     return tx;
   }
 
   /**
    *
-   * @param {SpartanZeroClient} receiver
+   * @param {SpartanDarkClient} receiver
    * @param {Number} amount
    */
   async spend(receiver, amount) {
@@ -157,45 +157,45 @@ class SpartanZeroClient extends Client {
       );
     }
 
-    let oldSpartanZero = SpartanZeroUtils.findAppropSpartanZero(
-      this.spartanZeroes,
+    let oldSpartanDark = SpartanDarkUtils.findAppropSpartanDark(
+      this.SpartanDarkes,
       amount
     );
 
-    this.spartanZeroes = this.spartanZeroes.filter((entry) => {
+    this.SpartanDarkes = this.SpartanDarkes.filter((entry) => {
       let coin = entry[1];
-      return coin.cm !== oldSpartanZero.cm;
+      return coin.cm !== oldSpartanDark.cm;
     });
 
-    let rhoOld = oldSpartanZero.rho;
+    let rhoOld = oldSpartanDark.rho;
     // get addrSK of old coin
-    let addrSKOld = this.addressBindings[oldSpartanZero.addrPK];
-    let snOld = SpartanZeroUtils.prf(rhoOld, SpartanZeroUtils.SN, addrSKOld);
+    let addrSKOld = this.addressBindings[oldSpartanDark.addrPK];
+    let snOld = SpartanDarkUtils.prf(rhoOld, SpartanDarkUtils.SN, addrSKOld);
     //let recvAddr = receiver.address;
 
     // the amount the spender needs to get back after spending the requd amount
-    let change = oldSpartanZero.v - amount;
-    let coinToSpend = SpartanZeroUtils.createNewSpartanZero(receiver, amount);
+    let change = oldSpartanDark.v - amount;
+    let coinToSpend = SpartanDarkUtils.createNewSpartanDark(receiver, amount);
     // remaining amount spender needs to send back to themselves
-    let coinChange = SpartanZeroUtils.createNewSpartanZero(this, change);
+    let coinChange = SpartanDarkUtils.createNewSpartanDark(this, change);
 
     // client needs to get back coinChange. so we can store coinChange in client's list and then check if transaction got validated while doing getBalance()
-    //this.spartanZeroes.push([change, coinChange]);
-    this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
-      this.spartanZeroes,
+    //this.SpartanDarkes.push([change, coinChange]);
+    this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+      this.SpartanDarkes,
       coinChange
     );
     // console.log("After getting back change: ");
-    // console.log(this.spartanZeroes);
+    // console.log(this.SpartanDarkes);
     // console.log("\n\n");
-    this.spartanZeroes.sort(SpartanZeroUtils.OrderSpartanZero);
+    this.SpartanDarkes.sort(SpartanDarkUtils.OrderSpartanDark);
 
-    const sigKeys = SpartanZeroUtils.generateKeypair();
+    const sigKeys = SpartanDarkUtils.generateKeypair();
     let pkSig = sigKeys.public;
     let skSig = sigKeys.private;
-    let hSig = SpartanZeroUtils.hash(pkSig);
-    let h_ = SpartanZeroUtils.prf(hSig, SpartanZeroUtils.PK, addrSKOld);
-    let cmOldInBase64 = oldSpartanZero.cm.toString('base64');
+    let hSig = SpartanDarkUtils.hash(pkSig);
+    let h_ = SpartanDarkUtils.prf(hSig, SpartanDarkUtils.PK, addrSKOld);
+    let cmOldInBase64 = oldSpartanDark.cm.toString('base64');
     let cmLedger = this.lastConfirmedBlock.cmLedger;
     let cmOldPositionInLedger = cmLedger.findIndex((x) => x === cmOldInBase64);
     let cmLedgerSize = cmLedger.length;
@@ -206,34 +206,34 @@ class SpartanZeroClient extends Client {
     //bufferCmLedger = Buffer.from(bufferCmLedger);
     let cmLedgerArray = [];
     for (let cmBuffer of bufferCmLedger) {
-      let cmBitArray = SpartanZeroUtils.bufferToBitArray(cmBuffer);
+      let cmBitArray = SpartanDarkUtils.bufferToBitArray(cmBuffer);
       for (let x of cmBitArray) {
         cmLedgerArray.push(x);
       }
     }
-    let paddingBits = (SpartanZeroUtils.CMLEDGER_MAXSIZE * (SpartanZeroUtils.BYTE_SIZE * 8)) - (cmLedgerSize*(SpartanZeroUtils.BYTE_SIZE * 8));
+    let paddingBits = (SpartanDarkUtils.CMLEDGER_MAXSIZE * (SpartanDarkUtils.BYTE_SIZE * 8)) - (cmLedgerSize*(SpartanDarkUtils.BYTE_SIZE * 8));
     for(let i=0; i < paddingBits; i++){
       cmLedgerArray.push(0);
     }
-    //let cmLedgerArray = SpartanZeroUtils.bufferToBitArray(bufferCmLedger);
+    //let cmLedgerArray = SpartanDarkUtils.bufferToBitArray(bufferCmLedger);
     let circuitInput = {
-      k: SpartanZeroUtils.bufferToBitArray(
-        SpartanZeroUtils.comm(
-          SpartanZeroUtils.hash(oldSpartanZero.addrPK),
-          oldSpartanZero.r,
-          oldSpartanZero.rho
+      k: SpartanDarkUtils.bufferToBitArray(
+        SpartanDarkUtils.comm(
+          SpartanDarkUtils.hash(oldSpartanDark.addrPK),
+          oldSpartanDark.r,
+          oldSpartanDark.rho
         )
       ),
 
-      hashValue: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.hashedV),
-      s: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.s),
-      cm: SpartanZeroUtils.bufferToBitArray(oldSpartanZero.cm),
+      hashValue: SpartanDarkUtils.bufferToBitArray(oldSpartanDark.hashedV),
+      s: SpartanDarkUtils.bufferToBitArray(oldSpartanDark.s),
+      cm: SpartanDarkUtils.bufferToBitArray(oldSpartanDark.cm),
       cmLedger: cmLedgerArray,
       cmLedgerSize : cmLedgerSize,
       positionOfCm : cmOldPositionInLedger,
       v1New : coinToSpend.v,
       v2New : coinChange.v,
-      vOld : oldSpartanZero.v
+      vOld : oldSpartanDark.v
     };
 
     let proofPacket = await snarkjs.groth16.fullProve(
@@ -258,7 +258,7 @@ class SpartanZeroClient extends Client {
     //DESIGNDEC: Sending coin alongwith notification so that the receiver can only check if the pourT id sent is present on the ledger and if yes, put that coin in its wallet. So our enc dec logic becomes redundant as the receiver already has the coin and does not need to decrypt anything from the pour transaction. Simplifying the actual logic of zerocash
     this.net.sendMessage(
       receiver.address,
-      SpartanZeroBlockchain.RECEIVE_TRANSACTION,
+      SpartanDarkBlockchain.RECEIVE_TRANSACTION,
       {
         cm: Buffer.from(coinToSpend.cm),
         coin: coinToSpend,
@@ -266,7 +266,7 @@ class SpartanZeroClient extends Client {
     );
     // this.net.sendMessage(
     //   this.address,
-    //   SpartanZeroBlockchain.RECEIVE_TRANSACTION,
+    //   SpartanDarkBlockchain.RECEIVE_TRANSACTION,
     //   {
     //     txId: tx.id,
     //     coin: coinChange,
@@ -296,8 +296,8 @@ class SpartanZeroClient extends Client {
     let timerId = setInterval(() => {
       if (this.checkIfCmInLedger(cm)) {
         console.log("Transaction Found by Receiver!!!!!!");
-        this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
-          this.spartanZeroes,
+        this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+          this.SpartanDarkes,
           coin
         );
         clearInterval(timerId);
@@ -315,7 +315,7 @@ class SpartanZeroClient extends Client {
     // console.log("hash to compare");
     // console.log(cmString);
     // if (
-    //   SpartanZeroUtils.bufferExistsInList(
+    //   SpartanDarkUtils.bufferExistsInList(
     //     this.lastConfirmedBlock.cmLedger,
     //     Buffer.from(cm)
     //   )
@@ -336,7 +336,7 @@ class SpartanZeroClient extends Client {
     // while (COIN_NOT_FOUND) {
     //   console.log(this.name + " is finding the blocks again");
     //   // for (let index = this.blocks.size-1; index >= 0; index--) {
-    //   //   let currBlock = SpartanZeroUtils.getMapValueAtIndex(this.blocks, index);
+    //   //   let currBlock = SpartanDarkUtils.getMapValueAtIndex(this.blocks, index);
     //   //   if (currBlock.transactions.has(txId)) {
     //   //     console.log("Transaction Found by Receiver!!!!!!");
     //   //     COIN_NOT_FOUND = false;
@@ -355,8 +355,8 @@ class SpartanZeroClient extends Client {
     // let lastBlock = this.lastConfirmedBlock;
     // if (lastBlock.transactions.has(txId)) {
     // console.log("Transaction Found by Receiver!!!!!!");
-    // this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
-    //   this.spartanZeroes,
+    // this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+    //   this.SpartanDarkes,
     //   coin
     // );
     // // /COIN_NOT_FOUND = false;
@@ -375,7 +375,7 @@ class SpartanZeroClient extends Client {
   //   // while (COIN_NOT_FOUND) {
   //   //   console.log(this.name + " is finding the blocks again");
   //   //   // for (let index = this.blocks.size-1; index >= 0; index--) {
-  //   //   //   let currBlock = SpartanZeroUtils.getMapValueAtIndex(this.blocks, index);
+  //   //   //   let currBlock = SpartanDarkUtils.getMapValueAtIndex(this.blocks, index);
   //   //   //   if (currBlock.transactions.has(txId)) {
   //   //   //     console.log("Transaction Found by Receiver!!!!!!");
   //   //   //     COIN_NOT_FOUND = false;
@@ -394,8 +394,8 @@ class SpartanZeroClient extends Client {
   //   // let lastBlock = this.lastConfirmedBlock;
   //   // if (lastBlock.transactions.has(txId)) {
   //   console.log("Transaction Found by Receiver!!!!!!");
-  //   this.spartanZeroes = SpartanZeroUtils.addSpartanZeroWithValueToWallet(
-  //     this.spartanZeroes,
+  //   this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+  //     this.SpartanDarkes,
   //     coin
   //   );
   //   // /COIN_NOT_FOUND = false;
@@ -424,7 +424,7 @@ class SpartanZeroClient extends Client {
   receiveBlock(block) {
     // If the block is a string, then deserialize it.
     //console.log("received bloc triggered for: "+this.name);
-    block = SpartanZeroBlockchain.deserializeBlock(block);
+    block = SpartanDarkBlockchain.deserializeBlock(block);
 
     // Ignore the block if it has been received previously.
     if (this.blocks.has(block.id)) return null;
@@ -486,25 +486,25 @@ class SpartanZeroClient extends Client {
   confirmOwnedCoins() {
     let lastBlock = this.lastConfirmedBlock;
     //console.log("current list: ");
-    //console.log(this.spartanZeroes);
-    // for (const [v, coin] of this.spartanZeroes) {
+    //console.log(this.SpartanDarkes);
+    // for (const [v, coin] of this.SpartanDarkes) {
     //   if (!lastBlock.cmLedger.includes(coin.cm)) {
     //     console.log("Coin "+ coin.cm+" not present. Removing");
-    //     //delete this.spartanZeroes[coin.cm];
-    //     let index = this.spartanZeroes.indexOf([v, coin]);
-    //     if (index == this.spartanZeroes.length){
-    //       this.spartanZeroes.pop();
+    //     //delete this.SpartanDarkes[coin.cm];
+    //     let index = this.SpartanDarkes.indexOf([v, coin]);
+    //     if (index == this.SpartanDarkes.length){
+    //       this.SpartanDarkes.pop();
     //     }
     //     else if (index == 0){
-    //       delete this.spartanZeroes[0];
+    //       delete this.SpartanDarkes[0];
     //     }
     //     else{
-    //       this.spartanZeroes.splice(index, 1);
+    //       this.SpartanDarkes.splice(index, 1);
     //     }
     //   }
     // }
-    //console.log("before check: " + this.spartanZeroes);
-    // this.spartanZeroes = this.spartanZeroes.filter((entry) =>{
+    //console.log("before check: " + this.SpartanDarkes);
+    // this.SpartanDarkes = this.SpartanDarkes.filter((entry) =>{
     //   let coin = entry[1];
     //   console.log("coin cm is: ");
     //   console.log(coin.cm);
@@ -512,16 +512,16 @@ class SpartanZeroClient extends Client {
     //   console.log(lastBlock.cmLedger);
     //   return lastBlock.cmLedger.includes(Buffer.from(coin.cm));
     // });
-    let iter = this.spartanZeroes.length;
+    let iter = this.SpartanDarkes.length;
     // console.log("lastblock cm ledger: ");
     // console.log(lastBlock.cmLedger);
     //BETTERCODE: using 2 loops to see if coin cm exists in ledger as a simple filtering like the one above does not seem to work.
     while (iter--) {
-      let coin = this.spartanZeroes[iter][1];
+      let coin = this.SpartanDarkes[iter][1];
       // console.log("coin cm is: ");
       // console.log(coin.cm);
 
-      // let present = SpartanZeroUtils.bufferExistsInList(
+      // let present = SpartanDarkUtils.bufferExistsInList(
       //   lastBlock.cmLedger,
       //   Buffer.from(coin.cm)
       // );
@@ -532,16 +532,16 @@ class SpartanZeroClient extends Client {
       //   //if (!Buffer.compare(m, coin.cm)) {
       //   if (m.equals(coin.cm)) {
       //     console.log("match found!");
-      //     //let index = this.spartanZeroes.indexOf(iter);
+      //     //let index = this.SpartanDarkes.indexOf(iter);
       //     present = 1;
       //     break;
       //   }
       // }
       if (!present) {
-        this.spartanZeroes.splice(iter, 1);
+        this.SpartanDarkes.splice(iter, 1);
       }
     }
-    //console.log("after check: " + this.spartanZeroes);
+    //console.log("after check: " + this.SpartanDarkes);
   }
 
   /**
@@ -559,7 +559,7 @@ class SpartanZeroClient extends Client {
     // where is lastConfirmed getting updated.
     //console.log("Here");
     let balance = 0;
-    for (const [v, coin] of this.spartanZeroes) {
+    for (const [v, coin] of this.SpartanDarkes) {
       balance += coin.v;
       // console.log("Value of coin is: "+coin.v);
       // this.balance += coin.v;
@@ -569,14 +569,14 @@ class SpartanZeroClient extends Client {
   }
 
   generateNewAddress() {
-    this.keyPair = SpartanZeroUtils.generateKeypair();
-    this.address = SpartanZeroUtils.calcAddress(this.keyPair.public);
+    this.keyPair = SpartanDarkUtils.generateKeypair();
+    this.address = SpartanDarkUtils.calcAddress(this.keyPair.public);
     this.addrPK = this.keyPair.public;
     this.addressBindings[this.keyPair.public] = this.keyPair.private;
   }
 
   generateEncDecKeyPair() {
-    let encDecKeyPair = SpartanZeroUtils.generateKeypair();
+    let encDecKeyPair = SpartanDarkUtils.generateKeypair();
     this.pubEncKey = encDecKeyPair.public;
     // DESIGNDEC: marking private decryption key as private using '#'
     this.#privDecKey = encDecKeyPair.private;
@@ -587,4 +587,4 @@ class SpartanZeroClient extends Client {
   }
 }
 
-module.exports.SpartanZeroClient = SpartanZeroClient;
+module.exports.SpartanDarkClient = SpartanDarkClient;

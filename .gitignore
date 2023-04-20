@@ -1,7 +1,7 @@
 points-to-be-noted.js
 sandboxSpace.js
 .DS_Store
-spartan-zero-utils-old.js
+spartan-dark-utils-old.js
 scratchpad.js
 pot17_final.ptau
 scratchpad.txt
@@ -14,3 +14,4 @@ circuit.sym
 circuit_0000.zkey
 circuit_0001.zkey
 pot15_final.ptau
+spartan-dark-transaction.js

@@ -1,13 +1,12 @@
 "use strict";
 
-const {SpartanZeroBlockchain} = require('./spartan-zero-blockchain.js');
-const {SpartanZeroBlock} = require('./spartan-zero-block.js');
-const {SpartanZeroClient} = require('./spartan-zero-client.js');
-const SpartanZeroMiner = require('./spartan-zero-miner.js');
-const { TranMint } = require('./spartan-zero-tran-mint.js');
-const { TranPour } = require('./spartan-zero-tran-pour.js');
-const SpartanZeroTransaction = require('./spartan-zero-transaction.js');
-const {SpartanZero} = require('./spartan-zero.js');
+const {SpartanDarkBlockchain} = require('./spartan-dark-blockchain.js');
+const {SpartanDarkBlock} = require('./spartan-dark-block.js');
+const {SpartanDarkClient} = require('./spartan-dark-client.js');
+const SpartanDarkMiner = require('./spartan-dark-miner.js');
+const { TranMint } = require('./spartan-dark-tran-mint.js');
+const { TranPour } = require('./spartan-dark-tran-pour.js');
+const {SpartanZero} = require('./spartan-dark.js');
 const { FakeNet, Transaction } = require('spartan-gold');
 
 console.log("Starting simulation.  This may take a moment...\n");
@@ -16,13 +15,13 @@ console.log("Starting simulation.  This may take a moment...\n");
 let fakeNet = new FakeNet();
 
 // Clients
-let alice = new SpartanZeroClient({name: "Alice", net: fakeNet});
-let bob = new SpartanZeroClient({name: "Bob", net: fakeNet});
-let charlie = new SpartanZeroClient({name: "Charlie", net: fakeNet});
+let alice = new SpartanDarkClient({name: "Alice", net: fakeNet});
+let bob = new SpartanDarkClient({name: "Bob", net: fakeNet});
+let charlie = new SpartanDarkClient({name: "Charlie", net: fakeNet});
 
 // Miners
-let minnie = new SpartanZeroMiner({name: "Minnie", net: fakeNet});
-let mickey = new SpartanZeroMiner({name: "Mickey", net: fakeNet});
+let minnie = new SpartanDarkMiner({name: "Minnie", net: fakeNet});
+let mickey = new SpartanDarkMiner({name: "Mickey", net: fakeNet});
 
 // Start each client and miner off with initAmt coins
 // let initialCoins = [];
@@ -34,8 +33,8 @@ let mickey = new SpartanZeroMiner({name: "Mickey", net: fakeNet});
 // initialCoins = initialCoins.concat(mickey.createInitialCoins(initAmt));
 
 // Creating genesis block
-let genesis = SpartanZeroBlockchain.makeGenesis({
-  blockClass: SpartanZeroBlock,
+let genesis = SpartanDarkBlockchain.makeGenesis({
+  blockClass: SpartanDarkBlock,
   mintTransactionClass: TranMint,
   pourTransactionClass: TranPour,
   clientBalanceMap: new Map([
@@ -48,11 +47,11 @@ let genesis = SpartanZeroBlockchain.makeGenesis({
   coinbaseAmount: 1
 });
 
-// alice.setGenesisBlock(SpartanZeroBlockchain.copyBlock(genesis));
-// bob.setGenesisBlock(SpartanZeroBlockchain.copyBlock(genesis));
-// charlie.setGenesisBlock(SpartanZeroBlockchain.copyBlock(genesis));
-// minnie.setGenesisBlock(SpartanZeroBlockchain.copyBlock(genesis));
-// mickey.setGenesisBlock(SpartanZeroBlockchain.copyBlock(genesis));
+// alice.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
+// bob.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
+// charlie.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
+// minnie.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
+// mickey.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
 
 function showBalances() {
   console.log(`Alice has ${alice.confirmedBalance} coins.`);

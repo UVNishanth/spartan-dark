@@ -28,10 +28,10 @@ const CONFIRMED_DEPTH = 6;
 
 const { Blockchain } = require("spartan-gold");
 
-const { SpartanZeroBlock } = require("./spartan-zero-block");
+const { SpartanDarkBlock } = require("./spartan-dark-block");
 
 //HIGHLIGHTS: setting new TransactionClasses
-class SpartanZeroBlockchain extends Blockchain {
+class SpartanDarkBlockchain extends Blockchain {
   static makeGenesis(cfg) {
     // let supercfg = Object.assign({}, cfg);
     // delete supercfg.mintTransactionClass;
@@ -41,7 +41,7 @@ class SpartanZeroBlockchain extends Blockchain {
     block.snLedger = [];
     block.cmLedger = [];
 
-    //SpartanZeroBlockchain.pourTransactions
+    //SpartanDarkBlockchain.pourTransactions
 
     console.log("genesis: " + block.isGenesisBlock());
     //throw new Error();
@@ -55,8 +55,8 @@ class SpartanZeroBlockchain extends Blockchain {
       }
     }
 
-    SpartanZeroBlockchain.cfg.mintTransactionClass = cfg.mintTransactionClass;
-    SpartanZeroBlockchain.cfg.pourTransactionClass = cfg.pourTransactionClass;
+    SpartanDarkBlockchain.cfg.mintTransactionClass = cfg.mintTransactionClass;
+    SpartanDarkBlockchain.cfg.pourTransactionClass = cfg.pourTransactionClass;
     // for (let prop in Blockchain.cfg) {
     //   console.log(prop + ": " + Blockchain.cfg.prop);
     // }
@@ -66,16 +66,16 @@ class SpartanZeroBlockchain extends Blockchain {
   }
   static makeTransaction(o) {
     if (
-      o instanceof SpartanZeroBlockchain.cfg.mintTransactionClass ||
-      o instanceof SpartanZeroBlockchain.cfg.pourTransactionClass
+      o instanceof SpartanDarkBlockchain.cfg.mintTransactionClass ||
+      o instanceof SpartanDarkBlockchain.cfg.pourTransactionClass
     ) {
       return o;
     }
     //BETTERCODE: setting class based on object property
     if (Object.hasOwn(o, "sn")) {
-      return new SpartanZeroBlockchain.cfg.pourTransactionClass(o);
+      return new SpartanDarkBlockchain.cfg.pourTransactionClass(o);
     }
-    return new SpartanZeroBlockchain.cfg.mintTransactionClass(o);
+    return new SpartanDarkBlockchain.cfg.mintTransactionClass(o);
   }
 
   /**
@@ -83,15 +83,15 @@ class SpartanZeroBlockchain extends Blockchain {
    *
    * @param {Object} o - An object representing a block, but not necessarily an instance of Block.
    *
-   * @returns {SpartanZeroBlock}
+   * @returns {SpartanDarkBlock}
    */
   static deserializeBlock(o) {
-    if (o instanceof SpartanZeroBlockchain.cfg.blockClass) {
+    if (o instanceof SpartanDarkBlockchain.cfg.blockClass) {
       //console.log("already a block");
       return o;
     }
 
-    let block = new SpartanZeroBlockchain.cfg.blockClass();
+    let block = new SpartanDarkBlockchain.cfg.blockClass();
     block.chainLength = parseInt(o.chainLength, 10);
     block.timestamp = o.timestamp;
     block.prevBlockHash = o.prevBlockHash;
@@ -126,12 +126,12 @@ class SpartanZeroBlockchain extends Blockchain {
    *
    * @param {Object} o - An object representing a transaction, but not necessarily an instance of transaction.
    *
-   * @returns {SpartanZeroTransaction}
+   * @returns {SpartanDarkTransaction}
    */
   static deserializeTransaction(o) {
     if (
-      o instanceof SpartanZeroBlockchain.cfg.mintTransactionClass ||
-      o instanceof SpartanZeroBlockchain.cfg.pourTransactionClass
+      o instanceof SpartanDarkBlockchain.cfg.mintTransactionClass ||
+      o instanceof SpartanDarkBlockchain.cfg.pourTransactionClass
     ) {
       return o;
     }
@@ -139,10 +139,10 @@ class SpartanZeroBlockchain extends Blockchain {
     //BETTERCODE: setting class based on object property
     if (Object.hasOwn(o, "sn")) {
       //console.log("Pour Transaction found!!!!!!");
-      return new SpartanZeroBlockchain.cfg.pourTransactionClass(o);
+      return new SpartanDarkBlockchain.cfg.pourTransactionClass(o);
     }
-    return new SpartanZeroBlockchain.cfg.mintTransactionClass(o);
+    return new SpartanDarkBlockchain.cfg.mintTransactionClass(o);
   }
 }
 
-module.exports.SpartanZeroBlockchain = SpartanZeroBlockchain;
+module.exports.SpartanDarkBlockchain = SpartanDarkBlockchain;
