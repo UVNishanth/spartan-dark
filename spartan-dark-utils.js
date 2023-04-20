@@ -163,7 +163,7 @@ module.exports.getMapValueAtIndex = (map, index) => {
 };
 
 module.exports.printWallet = (client) => {
-  let wallet = client.SpartanDarkes;
+  let wallet = client.SpartanDarks;
   for (const coin of wallet){
     printObjectProperties(coin);
   }

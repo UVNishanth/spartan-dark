@@ -34,9 +34,9 @@ class SpartanDarkClient extends Client {
   constructor({ name, net, startingBlock } = {}) {
     super({ name, net, startingBlock });
 
-    // SpartanDarkes = (value, coin) []
+    // SpartanDarks = (value, coin) []
     //DESIGNDEC: changing dict of cm -> coin to list of tuples (value, coin) coz list easier to sort than dict
-    this.SpartanDarkes = [];
+    this.SpartanDarks = [];
     this.on(SpartanDarkBlockchain.PROOF_FOUND, this.receiveBlock);
     this.on(SpartanDarkBlockchain.RECEIVE_TRANSACTION, this.receiveTransaction);
 
@@ -67,15 +67,15 @@ class SpartanDarkClient extends Client {
     let mintedCoin = SpartanDarkUtils.createNewSpartanDark(this, value);
     let cm = Buffer.from(mintedCoin.cm);
 
-    //this.SpartanDarkes.push(mintedCoin);
+    //this.SpartanDarks.push(mintedCoin);
     //BETTERCODE: currently sorting using comparator after adding. Change so that element gets added into a sorted list and sorts itself during insertion
 
-    // this.SpartanDarkes.push([value, mintedCoin]);
+    // this.SpartanDarks.push([value, mintedCoin]);
     // console.log("After push: ");
-    // console.log(this.SpartanDarkes + "\n\n");
-    // this.SpartanDarkes.sort(SpartanDarkUtils.OrderSpartanDark);
-    this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
-      this.SpartanDarkes,
+    // console.log(this.SpartanDarks + "\n\n");
+    // this.SpartanDarks.sort(SpartanDarkUtils.OrderSpartanDark);
+    this.SpartanDarks = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+      this.SpartanDarks,
       mintedCoin
     );
     // console.log("CM for newly minted coin: ");
@@ -100,22 +100,22 @@ class SpartanDarkClient extends Client {
    *
    * @returns {TranMint} - The generated mint transaction
    */
-  postMintTransaction(mintTxData) {
-    let tx = new TranMint(mintTxData);
+  // postMintTransaction(mintTxData) {
+  //   let tx = new TranMint(mintTxData);
 
-    //HIGHLIGHTS: Don't need to sign transaction unlike in original
-    //tx.sign(this.keyPair.private);
+  //   //HIGHLIGHTS: Don't need to sign transaction unlike in original
+  //   //tx.sign(this.keyPair.private);
 
-    // Adding transaction to pending.
-    this.pendingOutgoingTransactions.set(tx.id, tx);
+  //   // Adding transaction to pending.
+  //   this.pendingOutgoingTransactions.set(tx.id, tx);
 
-    //HIGHLIGHTS: nonce isn't utilized
-    //this.nonce++;
+  //   //HIGHLIGHTS: nonce isn't utilized
+  //   //this.nonce++;
 
-    this.net.broadcast(SpartanDarkBlockchain.POST_TRANSACTION, tx);
+  //   this.net.broadcast(SpartanDarkBlockchain.POST_TRANSACTION, tx);
 
-    return tx;
-  }
+  //   return tx;
+  // }
 
   postGenericTransaction(txData) {
     // Creating a transaction, with defaults for the
@@ -158,11 +158,11 @@ class SpartanDarkClient extends Client {
     }
 
     let oldSpartanDark = SpartanDarkUtils.findAppropSpartanDark(
-      this.SpartanDarkes,
+      this.SpartanDarks,
       amount
     );
 
-    this.SpartanDarkes = this.SpartanDarkes.filter((entry) => {
+    this.SpartanDarks = this.SpartanDarks.filter((entry) => {
       let coin = entry[1];
       return coin.cm !== oldSpartanDark.cm;
     });
@@ -180,15 +180,15 @@ class SpartanDarkClient extends Client {
     let coinChange = SpartanDarkUtils.createNewSpartanDark(this, change);
 
     // client needs to get back coinChange. so we can store coinChange in client's list and then check if transaction got validated while doing getBalance()
-    //this.SpartanDarkes.push([change, coinChange]);
-    this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
-      this.SpartanDarkes,
+    //this.SpartanDarks.push([change, coinChange]);
+    this.SpartanDarks = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+      this.SpartanDarks,
       coinChange
     );
     // console.log("After getting back change: ");
-    // console.log(this.SpartanDarkes);
+    // console.log(this.SpartanDarks);
     // console.log("\n\n");
-    this.SpartanDarkes.sort(SpartanDarkUtils.OrderSpartanDark);
+    this.SpartanDarks.sort(SpartanDarkUtils.OrderSpartanDark);
 
     const sigKeys = SpartanDarkUtils.generateKeypair();
     let pkSig = sigKeys.public;
@@ -296,8 +296,8 @@ class SpartanDarkClient extends Client {
     let timerId = setInterval(() => {
       if (this.checkIfCmInLedger(cm)) {
         console.log("Transaction Found by Receiver!!!!!!");
-        this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
-          this.SpartanDarkes,
+        this.SpartanDarks = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+          this.SpartanDarks,
           coin
         );
         clearInterval(timerId);
@@ -325,14 +325,14 @@ class SpartanDarkClient extends Client {
     return false;
   }
 
-  receiveTransactionLogic(msgInfo) {
-    //console.log("Received triggered for " + this.name);
-    //console.log(this.name+" is try");
-    let txId = msgInfo.txId;
-    let coin = msgInfo.coin;
+  // receiveTransactionLogic(msgInfo) {
+  //   //console.log("Received triggered for " + this.name);
+  //   //console.log(this.name+" is try");
+  //   let txId = msgInfo.txId;
+  //   let coin = msgInfo.coin;
 
-    let COIN_NOT_FOUND = true;
-    //let blockWhereTransExist;
+  //   let COIN_NOT_FOUND = true;
+  //   //let blockWhereTransExist;
     // while (COIN_NOT_FOUND) {
     //   console.log(this.name + " is finding the blocks again");
     //   // for (let index = this.blocks.size-1; index >= 0; index--) {
@@ -355,15 +355,15 @@ class SpartanDarkClient extends Client {
     // let lastBlock = this.lastConfirmedBlock;
     // if (lastBlock.transactions.has(txId)) {
     // console.log("Transaction Found by Receiver!!!!!!");
-    // this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
-    //   this.SpartanDarkes,
+    // this.SpartanDarks = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+    //   this.SpartanDarks,
     //   coin
     // );
     // // /COIN_NOT_FOUND = false;
     // return;
     // }
     // this.receiveTransaction(msgInfo);
-  }
+  //}
   // async receiveTransaction(msgInfo) {
   //   console.log("Received triggered for " + this.name);
   //   //console.log(this.name+" is try");
@@ -394,8 +394,8 @@ class SpartanDarkClient extends Client {
   //   // let lastBlock = this.lastConfirmedBlock;
   //   // if (lastBlock.transactions.has(txId)) {
   //   console.log("Transaction Found by Receiver!!!!!!");
-  //   this.SpartanDarkes = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
-  //     this.SpartanDarkes,
+  //   this.SpartanDarks = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
+  //     this.SpartanDarks,
   //     coin
   //   );
   //   // /COIN_NOT_FOUND = false;
@@ -486,25 +486,25 @@ class SpartanDarkClient extends Client {
   confirmOwnedCoins() {
     let lastBlock = this.lastConfirmedBlock;
     //console.log("current list: ");
-    //console.log(this.SpartanDarkes);
-    // for (const [v, coin] of this.SpartanDarkes) {
+    //console.log(this.SpartanDarks);
+    // for (const [v, coin] of this.SpartanDarks) {
     //   if (!lastBlock.cmLedger.includes(coin.cm)) {
     //     console.log("Coin "+ coin.cm+" not present. Removing");
-    //     //delete this.SpartanDarkes[coin.cm];
-    //     let index = this.SpartanDarkes.indexOf([v, coin]);
-    //     if (index == this.SpartanDarkes.length){
-    //       this.SpartanDarkes.pop();
+    //     //delete this.SpartanDarks[coin.cm];
+    //     let index = this.SpartanDarks.indexOf([v, coin]);
+    //     if (index == this.SpartanDarks.length){
+    //       this.SpartanDarks.pop();
     //     }
     //     else if (index == 0){
-    //       delete this.SpartanDarkes[0];
+    //       delete this.SpartanDarks[0];
     //     }
     //     else{
-    //       this.SpartanDarkes.splice(index, 1);
+    //       this.SpartanDarks.splice(index, 1);
     //     }
     //   }
     // }
-    //console.log("before check: " + this.SpartanDarkes);
-    // this.SpartanDarkes = this.SpartanDarkes.filter((entry) =>{
+    //console.log("before check: " + this.SpartanDarks);
+    // this.SpartanDarks = this.SpartanDarks.filter((entry) =>{
     //   let coin = entry[1];
     //   console.log("coin cm is: ");
     //   console.log(coin.cm);
@@ -512,12 +512,12 @@ class SpartanDarkClient extends Client {
     //   console.log(lastBlock.cmLedger);
     //   return lastBlock.cmLedger.includes(Buffer.from(coin.cm));
     // });
-    let iter = this.SpartanDarkes.length;
+    let iter = this.SpartanDarks.length;
     // console.log("lastblock cm ledger: ");
     // console.log(lastBlock.cmLedger);
     //BETTERCODE: using 2 loops to see if coin cm exists in ledger as a simple filtering like the one above does not seem to work.
     while (iter--) {
-      let coin = this.SpartanDarkes[iter][1];
+      let coin = this.SpartanDarks[iter][1];
       // console.log("coin cm is: ");
       // console.log(coin.cm);
 
@@ -532,16 +532,16 @@ class SpartanDarkClient extends Client {
       //   //if (!Buffer.compare(m, coin.cm)) {
       //   if (m.equals(coin.cm)) {
       //     console.log("match found!");
-      //     //let index = this.SpartanDarkes.indexOf(iter);
+      //     //let index = this.SpartanDarks.indexOf(iter);
       //     present = 1;
       //     break;
       //   }
       // }
       if (!present) {
-        this.SpartanDarkes.splice(iter, 1);
+        this.SpartanDarks.splice(iter, 1);
       }
     }
-    //console.log("after check: " + this.SpartanDarkes);
+    //console.log("after check: " + this.SpartanDarks);
   }
 
   /**
@@ -559,7 +559,7 @@ class SpartanDarkClient extends Client {
     // where is lastConfirmed getting updated.
     //console.log("Here");
     let balance = 0;
-    for (const [v, coin] of this.SpartanDarkes) {
+    for (const [v, coin] of this.SpartanDarks) {
       balance += coin.v;
       // console.log("Value of coin is: "+coin.v);
       // this.balance += coin.v;
