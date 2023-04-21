@@ -48,4 +48,4 @@ template VerifySpartanDark() {
         cm[x] === quinSelector[x].out;
     }
 }
-component main {public [cmLedger, cmLedgerSize, hashValue, k, s]}= VerifySpartanDark();
+component main {public [cmLedger, cmLedgerSize, hashValue]}= VerifySpartanDark();

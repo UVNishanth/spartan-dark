@@ -6,8 +6,7 @@ const {SpartanDarkClient} = require('./spartan-dark-client.js');
 const SpartanDarkMiner = require('./spartan-dark-miner.js');
 const { TranMint } = require('./spartan-dark-tran-mint.js');
 const { TranPour } = require('./spartan-dark-tran-pour.js');
-const {SpartanZero} = require('./spartan-dark.js');
-const { FakeNet, Transaction } = require('spartan-gold');
+const { FakeNet } = require('spartan-gold');
 
 console.log("Starting simulation.  This may take a moment...\n");
 
@@ -23,15 +22,6 @@ let charlie = new SpartanDarkClient({name: "Charlie", net: fakeNet});
 let minnie = new SpartanDarkMiner({name: "Minnie", net: fakeNet});
 let mickey = new SpartanDarkMiner({name: "Mickey", net: fakeNet});
 
-// Start each client and miner off with initAmt coins
-// let initialCoins = [];
-// const initAmt = 4;
-// initialCoins = initialCoins.concat(alice.createInitialCoins(initAmt));
-// initialCoins = initialCoins.concat(bob.createInitialCoins(initAmt));
-// initialCoins = initialCoins.concat(charlie.createInitialCoins(initAmt));
-// initialCoins = initialCoins.concat(minnie.createInitialCoins(initAmt));
-// initialCoins = initialCoins.concat(mickey.createInitialCoins(initAmt));
-
 // Creating genesis block
 let genesis = SpartanDarkBlockchain.makeGenesis({
   blockClass: SpartanDarkBlock,
@@ -46,12 +36,6 @@ let genesis = SpartanDarkBlockchain.makeGenesis({
   ]),
   coinbaseAmount: 1
 });
-
-// alice.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
-// bob.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
-// charlie.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
-// minnie.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
-// mickey.setGenesisBlock(SpartanDarkBlockchain.copyBlock(genesis));
 
 function showBalances() {
   console.log(`Alice has ${alice.confirmedBalance} coins.`);
@@ -148,7 +132,7 @@ setTimeout(() => {
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
-}, 50000);
+}, 100000);
 
 
 // // Transfer some money around.
