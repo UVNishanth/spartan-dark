@@ -2,6 +2,7 @@ pragma circom 2.0.0;
 
 include "node_modules/circomlib/circuits/sha256/sha256.circom";
 include "QuinSelector.circom";
+include "node_modules/circomlib/circuits/bitify.circom";
 
 
 template VerifySpartanDark() {
@@ -11,7 +12,9 @@ template VerifySpartanDark() {
     var MAX_CMLEDGER_LENGTH = HASH_LENGTH * 16;
 
     signal input cmLedgerSize;
+    signal input run;
     signal input cm[HASH_LENGTH];
+    signal input cm2[HASH_LENGTH];
     signal input hashValue[HASH_LENGTH];
     signal input k[HASH_LENGTH];
     signal input s[HASH_LENGTH];
@@ -20,6 +23,8 @@ template VerifySpartanDark() {
     signal input v1New;
     signal input v2New;
     signal input vOld;
+
+    signal output temp[HASH_LENGTH];
 
     // Check if value of new coins match that of the old coin
     vOld === v1New + v2New;
@@ -32,10 +37,12 @@ template VerifySpartanDark() {
         hash.in[i + HASH_LENGTH + HASH_LENGTH] <== s[i];
     }
     
-    // Check if cm of spending coin is in the cmLedger
     for (var i = 0; i < HASH_LENGTH; i++) {
         hash.out[i] === cm[i];
     }
+
+    
+    // Check if cm of spending coin is in the cmLedger
     component quinSelector[HASH_LENGTH];
 
     var start = positionOfCm * HASH_LENGTH;
@@ -47,5 +54,21 @@ template VerifySpartanDark() {
         quinSelector[x].index <== start+x;
         cm[x] === quinSelector[x].out;
     }
+
+    component hash2 = Sha256(HASH_LENGTH * 3);
+
+    //check for cm2 if it exists
+    for (var i = 0; i < HASH_LENGTH; i++) {
+        hash2.in[i] <== hashValue[i];
+        hash2.in[i + HASH_LENGTH] <== k[i];
+        hash2.in[i + HASH_LENGTH + HASH_LENGTH] <== s[i];
+    }
+    
+    // Check if cm of spending coin is in the cmLedger
+    for (var i = 0; i < HASH_LENGTH; i++) {
+        temp[i] <== (hash2.out[i] * (1 - run));
+        hash2.out[i] === (cm[i]*run) + temp[i];
+    }
+
 }
 component main {public [cmLedger, cmLedgerSize, hashValue]}= VerifySpartanDark();

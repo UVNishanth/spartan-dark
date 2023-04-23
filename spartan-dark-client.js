@@ -48,7 +48,7 @@ class SpartanDarkClient extends Client {
 
     this.generateNewAddress();
 
-    this.generateEncDecKeyPair();
+    //this.generateEncDecKeyPair();
   }
 
   // ASK: Make sure the client has enough gold.
@@ -233,7 +233,9 @@ class SpartanDarkClient extends Client {
       positionOfCm : cmOldPositionInLedger,
       v1New : coinToSpend.v,
       v2New : coinChange.v,
-      vOld : oldSpartanDark.v
+      vOld : oldSpartanDark.v,
+      run : 1,
+      cm2 : SpartanDarkUtils.bufferToBitArray(Buffer.alloc(SpartanDarkUtils.BYTE_SIZE))
     };
 
     let proofPacket = await snarkjs.groth16.fullProve(
@@ -264,14 +266,6 @@ class SpartanDarkClient extends Client {
         coin: coinToSpend,
       }
     );
-    // this.net.sendMessage(
-    //   this.address,
-    //   SpartanDarkBlockchain.RECEIVE_TRANSACTION,
-    //   {
-    //     txId: tx.id,
-    //     coin: coinChange,
-    //   }
-    // );
   }
 
   //TODO: implement
@@ -291,7 +285,6 @@ class SpartanDarkClient extends Client {
   async receiveTransaction(msgInfo) {
     let coin = msgInfo.coin;
     let cm = msgInfo.cm;
-    // /this.coinFound.set(cmHash, false);
     //DESIGNDEC: even tho receieveTransation is triggered immediately after spender spends the coin, due to latency of proof generation, the coin might not be on the ledger immediately. So we run the findcoin function (inside the setIntervals) periodically till the coin is found. Can add a timeout to let the reciever know that spender's transaction has been invalidated (easy way to implement is to keep a cmRejectedLedger in block and also check lastblock's cmRejectedLedger to see if the coin was rejected)
     let timerId = setInterval(() => {
       if (this.checkIfCmInLedger(cm)) {
@@ -308,115 +301,14 @@ class SpartanDarkClient extends Client {
 
   checkIfCmInLedger(cm) {
     let lastBlock = this.lastConfirmedBlock;
-    // console.log("I am " + this.name);
-    // console.log("Last Block Ledger");
-    // console.log(lastBlock.cmLedger);
     let cmString = Buffer.from(cm).toString("base64");
-    // console.log("hash to compare");
-    // console.log(cmString);
-    // if (
-    //   SpartanDarkUtils.bufferExistsInList(
-    //     this.lastConfirmedBlock.cmLedger,
-    //     Buffer.from(cm)
-    //   )
     if (lastBlock.cmLedger.includes(cmString)) {
       return true;
     }
     return false;
   }
 
-  // receiveTransactionLogic(msgInfo) {
-  //   //console.log("Received triggered for " + this.name);
-  //   //console.log(this.name+" is try");
-  //   let txId = msgInfo.txId;
-  //   let coin = msgInfo.coin;
-
-  //   let COIN_NOT_FOUND = true;
-  //   //let blockWhereTransExist;
-    // while (COIN_NOT_FOUND) {
-    //   console.log(this.name + " is finding the blocks again");
-    //   // for (let index = this.blocks.size-1; index >= 0; index--) {
-    //   //   let currBlock = SpartanDarkUtils.getMapValueAtIndex(this.blocks, index);
-    //   //   if (currBlock.transactions.has(txId)) {
-    //   //     console.log("Transaction Found by Receiver!!!!!!");
-    //   //     COIN_NOT_FOUND = false;
-    //   //     break;
-    //   //   }
-    //   //   if (!COIN_NOT_FOUND){
-    //   //     break;
-    //   //   }
-    //   // }
-    //   let lastBlock = this.lastConfirmedBlock;
-    //   if (lastBlock.transactions.has(txId)) {
-    //         console.log("Transaction Found by Receiver!!!!!!");
-    //         COIN_NOT_FOUND = false;
-    //         break;
-    //   }
-    // let lastBlock = this.lastConfirmedBlock;
-    // if (lastBlock.transactions.has(txId)) {
-    // console.log("Transaction Found by Receiver!!!!!!");
-    // this.SpartanDarks = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
-    //   this.SpartanDarks,
-    //   coin
-    // );
-    // // /COIN_NOT_FOUND = false;
-    // return;
-    // }
-    // this.receiveTransaction(msgInfo);
-  //}
-  // async receiveTransaction(msgInfo) {
-  //   console.log("Received triggered for " + this.name);
-  //   //console.log(this.name+" is try");
-  //   let txId = msgInfo.txId;
-  //   let coin = msgInfo.coin;
-
-  //   let COIN_NOT_FOUND = true;
-  //   //let blockWhereTransExist;
-  //   // while (COIN_NOT_FOUND) {
-  //   //   console.log(this.name + " is finding the blocks again");
-  //   //   // for (let index = this.blocks.size-1; index >= 0; index--) {
-  //   //   //   let currBlock = SpartanDarkUtils.getMapValueAtIndex(this.blocks, index);
-  //   //   //   if (currBlock.transactions.has(txId)) {
-  //   //   //     console.log("Transaction Found by Receiver!!!!!!");
-  //   //   //     COIN_NOT_FOUND = false;
-  //   //   //     break;
-  //   //   //   }
-  //   //   //   if (!COIN_NOT_FOUND){
-  //   //   //     break;
-  //   //   //   }
-  //   //   // }
-  //   //   let lastBlock = this.lastConfirmedBlock;
-  //   //   if (lastBlock.transactions.has(txId)) {
-  //   //         console.log("Transaction Found by Receiver!!!!!!");
-  //   //         COIN_NOT_FOUND = false;
-  //   //         break;
-  //   //   }
-  //   // let lastBlock = this.lastConfirmedBlock;
-  //   // if (lastBlock.transactions.has(txId)) {
-  //   console.log("Transaction Found by Receiver!!!!!!");
-  //   this.SpartanDarks = SpartanDarkUtils.addSpartanDarkWithValueToWallet(
-  //     this.SpartanDarks,
-  //     coin
-  //   );
-  //   // /COIN_NOT_FOUND = false;
-  //   return;
-  //   // }
-  //   // this.receiveTransaction(msgInfo);
-  // }
-
-  //HACK: could have used. but as zk-spartan-cash has 2 transaction classes,
-  // the cfg.transactionClass in Blockchain class is not which is reqd for parent method
-  /**
-   * Validates and adds a block to the list of blocks, possibly updating the head
-   * of the blockchain.  Any transactions in the block are rerun in order to
-   * update the gold balances for all clients.  If any transactions are found to be
-   * invalid due to lack of funds, the block is rejected and 'null' is returned to
-   * indicate failure.
-   *
-   * If any blocks cannot be connected to an existing block but seem otherwise valid,
-   * they are added to a list of pending blocks and a request is sent out to get the
-   * missing blocks from other clients.
-   *
+   /*
    * @param {Block | Object} block - The block to add to the clients list of available blocks.
    *
    *  @returns {Block | null} The block with rerun transactions, or null for an invalid block.
@@ -485,63 +377,16 @@ class SpartanDarkClient extends Client {
    */
   confirmOwnedCoins() {
     let lastBlock = this.lastConfirmedBlock;
-    //console.log("current list: ");
-    //console.log(this.SpartanDarks);
-    // for (const [v, coin] of this.SpartanDarks) {
-    //   if (!lastBlock.cmLedger.includes(coin.cm)) {
-    //     console.log("Coin "+ coin.cm+" not present. Removing");
-    //     //delete this.SpartanDarks[coin.cm];
-    //     let index = this.SpartanDarks.indexOf([v, coin]);
-    //     if (index == this.SpartanDarks.length){
-    //       this.SpartanDarks.pop();
-    //     }
-    //     else if (index == 0){
-    //       delete this.SpartanDarks[0];
-    //     }
-    //     else{
-    //       this.SpartanDarks.splice(index, 1);
-    //     }
-    //   }
-    // }
-    //console.log("before check: " + this.SpartanDarks);
-    // this.SpartanDarks = this.SpartanDarks.filter((entry) =>{
-    //   let coin = entry[1];
-    //   console.log("coin cm is: ");
-    //   console.log(coin.cm);
-    //   console.log("lastblock cm ledger: ")
-    //   console.log(lastBlock.cmLedger);
-    //   return lastBlock.cmLedger.includes(Buffer.from(coin.cm));
-    // });
     let iter = this.SpartanDarks.length;
-    // console.log("lastblock cm ledger: ");
-    // console.log(lastBlock.cmLedger);
     //BETTERCODE: using 2 loops to see if coin cm exists in ledger as a simple filtering like the one above does not seem to work.
     while (iter--) {
       let coin = this.SpartanDarks[iter][1];
-      // console.log("coin cm is: ");
-      // console.log(coin.cm);
-
-      // let present = SpartanDarkUtils.bufferExistsInList(
-      //   lastBlock.cmLedger,
-      //   Buffer.from(coin.cm)
-      // );
       let cmString = Buffer.from(coin.cm).toString("base64");
       let present = lastBlock.cmLedger.includes(cmString) ? 1 : 0;
-      // let present = 0;
-      // for (const m of lastBlock.cmLedger) {
-      //   //if (!Buffer.compare(m, coin.cm)) {
-      //   if (m.equals(coin.cm)) {
-      //     console.log("match found!");
-      //     //let index = this.SpartanDarks.indexOf(iter);
-      //     present = 1;
-      //     break;
-      //   }
-      // }
       if (!present) {
         this.SpartanDarks.splice(iter, 1);
       }
     }
-    //console.log("after check: " + this.SpartanDarks);
   }
 
   /**
@@ -561,10 +406,7 @@ class SpartanDarkClient extends Client {
     let balance = 0;
     for (const [v, coin] of this.SpartanDarks) {
       balance += coin.v;
-      // console.log("Value of coin is: "+coin.v);
-      // this.balance += coin.v;
     }
-    //console.log("My balance is "+balance);
     return balance;
   }
 
@@ -575,16 +417,16 @@ class SpartanDarkClient extends Client {
     this.addressBindings[this.keyPair.public] = this.keyPair.private;
   }
 
-  generateEncDecKeyPair() {
-    let encDecKeyPair = SpartanDarkUtils.generateKeypair();
-    this.pubEncKey = encDecKeyPair.public;
-    // DESIGNDEC: marking private decryption key as private using '#'
-    this.#privDecKey = encDecKeyPair.private;
-    // console.log("Pub priv enc dec keys");
-    // console.log(this.pubEncKey);
-    // console.log(this.#privDecKey);
-    // console.log();
-  }
+  //generateEncDecKeyPair() {
+    // let encDecKeyPair = SpartanDarkUtils.generateKeypair();
+    // this.pubEncKey = encDecKeyPair.public;
+    // // DESIGNDEC: marking private decryption key as private using '#'
+    // this.#privDecKey = encDecKeyPair.private;
+    // // console.log("Pub priv enc dec keys");
+    // // console.log(this.pubEncKey);
+    // // console.log(this.#privDecKey);
+    // // console.log();
+  //}
 }
 
 module.exports.SpartanDarkClient = SpartanDarkClient;
