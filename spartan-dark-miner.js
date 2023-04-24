@@ -190,13 +190,16 @@ module.exports = class SpartanDarkMiner extends SpartanDarkClient {
    * @param {Transaction | String} tx - The transaction to add.
    */
   async addTransaction(tx) {
+    let startTime = performance.now();
     tx = SpartanDarkBlockchain.deserializeTransaction(tx);
     let res = await this.currentBlock.verifyTransaction(tx);
     if (res){
-        this.log("mint transaction verified, adding it to the current block");
+        this.log("Transaction verified, adding it to the current block");
         this.currentBlock.addTransaction(tx);
         //this.currentBlock.cmLedger.push(tx.cm);
     }
+    let endTime = performance.now();
+    console.log(`Execution time of verification is: ${endTime - startTime} ms`);
   }
 
   /**

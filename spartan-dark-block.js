@@ -144,11 +144,14 @@ class SpartanDarkBlock extends Block {
         return false;
       }
       let vKey = JSON.parse(fs.readFileSync("verification_key.json"));
+      let proofVerifyStartTime = performance.now();
       let res = await snarkjs.groth16.verify(
         vKey,
         tx.proof.publicSignals,
         tx.proof.proof
       );
+      let proofVerifyEndTime = performance.now();
+      console.log(`Execution time of proof verificatio is ${proofVerifyEndTime - proofVerifyStartTime} ms`);
       if (res !== true) {
         console.log("unverified proof");
         return false;

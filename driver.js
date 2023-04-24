@@ -57,74 +57,70 @@ mickey.initialize();
 //const start = Date.now();
 //Mint new coins
 //for (let i = 1; i <= 2; i++) {
-  console.log("Charlie is minting coin of value 2");
-  charlie.mint(2);
-  console.log("Alice is minting coin of value 2");
-  alice.mint(7);
-  console.log("Charlie is minting coin of value 9");
-  charlie.mint(9);
+console.log("Charlie is minting coin of value 2");
+charlie.mint(2);
+console.log("Alice is minting coin of value 2");
+alice.mint(7);
+console.log("Charlie is minting coin of value 9");
+charlie.mint(9);
 
-  /**
-   * Balances now:
-   * alice: 7
-   * charlie: 11
-   */
+/**
+ * Balances now:
+ * alice: 7
+ * charlie: 11
+ */
 
-  //console.log("Bob is minting coin of value 50");
+//console.log("Bob is minting coin of value 50");
 
-  //need to wait for sometime so that minting process begins so that the client finds some coins in their purse
-  setTimeout(() => {
-    charlie.spend(alice, 5);
-  }, 100);
+//need to wait for sometime so that minting process begins so that the client finds some coins in their purse
+setTimeout(() => {
+  charlie.spend(alice, 5);
+}, 100);
 
-  /**
-   * alice: 7+5 = 12
-   * charlie: 11-5 = 6
-   */
+/**
+ * alice: 7+5 = 12
+ * charlie: 11-5 = 6
+ */
 
-  console.log("Bob is minting coin of value 50");
-  bob.mint(50);
+console.log("Bob is minting coin of value 50");
+bob.mint(50);
 
-  /**
-   * alice: 12
-   * charlie: 6
-   * bob: 50
-   */
+/**
+ * alice: 12
+ * charlie: 6
+ * bob: 50
+ */
 
-  setTimeout(() => {
-    bob.spend(alice, 20);
-  }, 100);
+setTimeout(() => {
+  bob.spend(alice, 20);
+}, 100);
 
-  /**
-   * alice: 12 + 20 = 32
-   * charlie: 6
-   * bob: 50 - 20 = 30
-   */
+/**
+ * alice: 12 + 20 = 32
+ * charlie: 6
+ * bob: 50 - 20 = 30
+ */
 
-  //FLAW: Alice cannot spend here coz they havem't yet received he amount sent previously by Bob and Charlie. So they do not have sufficient balance. this is happening coz javascript is single-threaded and so for alice to spend, they would need the previous transactions to have gotten completed
-  setTimeout(() => {
-    alice.spend(bob, 4);
-  }, 100);
+//FLAW: Alice cannot spend here coz they havem't yet received he amount sent previously by Bob and Charlie. So they do not have sufficient balance. this is happening coz javascript is single-threaded and so for alice to spend, they would need the previous transactions to have gotten completed
+setTimeout(() => {
+  alice.spend(bob, 4);
+}, 100);
 
+// charlie.mint(2);
+// setTimeout(() => {
+//   charlie.spend(alice, 5);
+// }, 10000);
 
-  // charlie.mint(2);
-  // setTimeout(() => {
-  //   charlie.spend(alice, 5);
-  // }, 10000);
+// console.log("Alice is minting coin of value 2");
+// alice.mint(7);
+// console.log("Charlie is minting coin of value 9");
+// charlie.mint(9);
 
-  // console.log("Alice is minting coin of value 2");
-  // alice.mint(7);
-  // console.log("Charlie is minting coin of value 9");
-  // charlie.mint(9);
-
-
-
-
-  /**
-   * alice: 32 - 4 = 28
-   * charlie: 6
-   * bob: 30 + 4 = 34
-   */
+/**
+ * alice: 32 - 4 = 28
+ * charlie: 6
+ * bob: 30 + 4 = 34
+ */
 //}
 
 /** iter: 2
@@ -145,16 +141,15 @@ setTimeout(() => {
   );
   console.log("Final balances:");
   console.log("Alice now has coins of total value: " + alice.getBalance());
-  console.log("Alice wallet: ")
+  console.log("Alice wallet: ");
   //console.log(alice.SpartanDarks);
   console.log("Charlie now has coins of total value: " + charlie.getBalance());
   console.log("Charlie wallet: ");
   //console.log(charlie.SpartanDarks);
   console.log("Bob now has coins of total value: " + bob.getBalance());
-  console.log("Bob wallet: ")
+  console.log("Bob wallet: ");
   //console.log(bob.SpartanDarks);
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
-}, 70000);
-
+}, 65000);

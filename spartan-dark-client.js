@@ -9,6 +9,8 @@ const SpartanDarkUtils = require("./spartan-dark-utils.js");
 const { TranMint } = require("./spartan-dark-tran-mint.js");
 const { TranPour } = require("./spartan-dark-tran-pour.js");
 
+//const performance = require('perfor')
+
 //TODO: add functionality to mint new coins after initializing blockchain makeGenesis so that
 // the associated balance is converted into coins which the client cna then spend. Which can then be
 // used to determine whether the client has enough funds to mint a coin of specified value and hence
@@ -64,6 +66,7 @@ class SpartanDarkClient extends Client {
    */
 
   mint(value) {
+    let startTime = performance.now();
     let mintedCoin = SpartanDarkUtils.createNewSpartanDark(this, value);
     let cm = Buffer.from(mintedCoin.cm);
 
@@ -81,6 +84,9 @@ class SpartanDarkClient extends Client {
     // console.log("CM for newly minted coin: ");
     // console.log(cm);
 
+    //let endTime = performance.now();
+    //console.log(`Execution Time for Mint in milliseconds is: ${endTime - startTime} milliseconds`);
+
     // Create and broadcast the transaction.
     this.postGenericTransaction({
       cm: mintedCoin.cm,
@@ -89,6 +95,10 @@ class SpartanDarkClient extends Client {
       k: mintedCoin.k,
       s: mintedCoin.s,
     });
+
+    let endTime = performance.now();
+    console.log(`Execution Time for Mint in milliseconds is: ${endTime - startTime} milliseconds`);
+
   }
 
   /**
@@ -120,13 +130,16 @@ class SpartanDarkClient extends Client {
   postGenericTransaction(txData) {
     // Creating a transaction, with defaults for the
     // from, nonce, and pubKey fields.
+    let startTime = this.startTime;
     let tx;
     if (Object.hasOwn(txData, "sn")) {
       tx = new TranPour(txData);
+      console.log(`Sending Pour Transaction`);
     }
     //console.log("Am here now");
     else {
       tx = new TranMint(txData);
+      console.log(`Sending Mint Transaction`);
     }
 
     //HIGHLIGHTS: Don't need to sign transaction unlike in original
@@ -139,6 +152,8 @@ class SpartanDarkClient extends Client {
     //this.nonce++;
 
     this.net.broadcast(SpartanDarkBlockchain.POST_TRANSACTION, tx);
+    // let endTime = performance.now();
+    // console.log(`Execution Time for Mint in milliseconds is: ${endTime - startTime} milliseconds`);
 
     return tx;
   }
@@ -149,6 +164,7 @@ class SpartanDarkClient extends Client {
    * @param {Number} amount
    */
   async spend(receiver, amount) {
+    let startTime = performance.now();
     //DESIGNDEC: Doing a check also gives a side-effect of checking if a coin-change added by the spender previously has been committed to the ledger successfully and in turn also updates the balance accordingly
     let currBalance = this.getBalance();
     if (currBalance < amount) {
@@ -238,12 +254,16 @@ class SpartanDarkClient extends Client {
       cm2 : SpartanDarkUtils.bufferToBitArray(Buffer.alloc(SpartanDarkUtils.BYTE_SIZE))
     };
 
+    let proofGenStartTime = performance.now();
     let proofPacket = await snarkjs.groth16.fullProve(
       circuitInput,
       "circuit.wasm",
       "circuit_final.zkey"
     );
 
+    let proofGenEndTime = performance.now();
+
+    console.log(`Execution time to generate proof is ${proofGenEndTime - proofGenStartTime} ms`);
     // console.log("For pour: generated 2 new coins of cm: ");
     // console.log(coinToSpend.cm);
     // console.log(coinChange.cm);
@@ -266,6 +286,10 @@ class SpartanDarkClient extends Client {
         coin: coinToSpend,
       }
     );
+    let endTime = performance.now();
+    console.log(`Execution Time for Spend in milliseconds is: ${endTime - startTime} milliseconds`);
+
+    
   }
 
   //TODO: implement
@@ -283,6 +307,7 @@ class SpartanDarkClient extends Client {
    */
 
   async receiveTransaction(msgInfo) {
+    let startTime = performance.now();
     let coin = msgInfo.coin;
     let cm = msgInfo.cm;
     //DESIGNDEC: even tho receieveTransation is triggered immediately after spender spends the coin, due to latency of proof generation, the coin might not be on the ledger immediately. So we run the findcoin function (inside the setIntervals) periodically till the coin is found. Can add a timeout to let the reciever know that spender's transaction has been invalidated (easy way to implement is to keep a cmRejectedLedger in block and also check lastblock's cmRejectedLedger to see if the coin was rejected)
@@ -296,6 +321,8 @@ class SpartanDarkClient extends Client {
         clearInterval(timerId);
       }
     }, 5000);
+    let endTime = performance.now();
+    console.log(`Execution Time for Receive in milliseconds is: ${endTime - startTime} milliseconds`);
     // /return;
   }
 
