@@ -24,6 +24,11 @@ template VerifySpartanDark() {
     signal input v2New;
     signal input vOld;
 
+    //signal input sn[HASH_LENGTH];
+    //signal input addrSK[HASH_LENGTH];
+    //signal input rho[HASH_LENGTH];
+
+
     signal output temp[HASH_LENGTH];
 
     // Check if value of new coins match that of the old coin
@@ -71,4 +76,4 @@ template VerifySpartanDark() {
     }
 
 }
-component main {public [cmLedger, cmLedgerSize, hashValue]}= VerifySpartanDark();
+component main {public [cmLedger, cmLedgerSize, hashValue, sn]}= VerifySpartanDark();

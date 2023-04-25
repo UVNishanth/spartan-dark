@@ -186,7 +186,7 @@ class SpartanDarkClient extends Client {
     let rhoOld = oldSpartanDark.rho;
     // get addrSK of old coin
     let addrSKOld = this.addressBindings[oldSpartanDark.addrPK];
-    let snOld = SpartanDarkUtils.prf(rhoOld, SpartanDarkUtils.SN, addrSKOld);
+    let snOld = SpartanDarkUtils.prf(rhoOld, addrSKOld);
     //let recvAddr = receiver.address;
 
     // the amount the spender needs to get back after spending the requd amount
@@ -210,7 +210,7 @@ class SpartanDarkClient extends Client {
     let pkSig = sigKeys.public;
     let skSig = sigKeys.private;
     let hSig = SpartanDarkUtils.hash(pkSig);
-    let h_ = SpartanDarkUtils.prf(hSig, SpartanDarkUtils.PK, addrSKOld);
+    //let h_ = SpartanDarkUtils.prf(hSig, SpartanDarkUtils.PK, addrSKOld);
     let cmOldInBase64 = oldSpartanDark.cm.toString('base64');
     let cmLedger = this.lastConfirmedBlock.cmLedger;
     let cmOldPositionInLedger = cmLedger.findIndex((x) => x === cmOldInBase64);
@@ -252,6 +252,7 @@ class SpartanDarkClient extends Client {
       vOld : oldSpartanDark.v,
       run : 1,
       cm2 : SpartanDarkUtils.bufferToBitArray(Buffer.alloc(SpartanDarkUtils.BYTE_SIZE))
+
     };
 
     let proofGenStartTime = performance.now();

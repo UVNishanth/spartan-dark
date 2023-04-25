@@ -67,20 +67,29 @@ let comm = (x, rho, r) => {
  * @param {*} z rho value
  * @returns
  */
-module.exports.prf = (x, type, z) => {
-  // z is generally an addr key. to standardize it, we hash and then use. Read points-to-be-noted
-  z = hash(z);
-  switch (type) {
-    case ADDR:
-      return hash(x + "00" + z + "");
+// module.exports.prf = (x, type, z) => {
+//   // z is generally an addr key. to standardize it, we hash and then use. Read points-to-be-noted
+//   z = hash(z);
+//   switch (type) {
+//     case ADDR:
+//       return hash(x + "00" + z + "");
 
-    case SN:
-      return hash(x + "01" + z + "");
+//     case SN:
+//       return hash(x + "01" + z + "");
 
-    case PK:
-      return hash(x + "10" + z + "");
-  }
+//     case PK:
+//       return hash(x + "10" + z + "");
+//   }
+// };
+
+module.exports.prf = (rho, addr) => {
+  rho = Buffer.isBuffer(rho) ? rho : Buffer.from(rho);
+  addr = Buffer.isBuffer(addr) ? addr : Buffer.from(addr);
+  let s = Buffer.concat([rho, addr]);
+  return hash(s);
+
 };
+
 
 let OrderSpartanDark = (a, b) => {
   return a[0] - b[0];
