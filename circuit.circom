@@ -12,9 +12,9 @@ template VerifySpartanDark() {
     var MAX_CMLEDGER_LENGTH = HASH_LENGTH * 16;
 
     signal input cmLedgerSize;
-    signal input run;
+    //signal input run;
     signal input cm[HASH_LENGTH];
-    signal input cm2[HASH_LENGTH];
+    //signal input cm2[HASH_LENGTH];
     signal input hashValue[HASH_LENGTH];
     signal input k[HASH_LENGTH];
     signal input s[HASH_LENGTH];
@@ -24,15 +24,25 @@ template VerifySpartanDark() {
     signal input v2New;
     signal input vOld;
 
-    //signal input sn[HASH_LENGTH];
-    //signal input addrSK[HASH_LENGTH];
-    //signal input rho[HASH_LENGTH];
-
-
-    signal output temp[HASH_LENGTH];
+    signal input snOld[HASH_LENGTH];
+    signal input addrSK[HASH_LENGTH];
+    //signal input rhoOld[HASH_LENGTH];
 
     // Check if value of new coins match that of the old coin
     vOld === v1New + v2New;
+
+    // Check if sn is well formed
+    component hashSN = Sha256(HASH_LENGTH * 2);
+    for (var i = 0; i < HASH_LENGTH; i++) {
+        hashSN.in[i] <== addrSK[i];
+        hashSN.in[i + HASH_LENGTH] <== cm[i];
+    }
+    
+    for (var i = 0; i < HASH_LENGTH; i++) {
+        hashSN.out[i] === snOld[i];
+    }
+
+
 
     // Check if spender knows the cm of spending coin
     component hash = Sha256(HASH_LENGTH * 3);
@@ -60,20 +70,5 @@ template VerifySpartanDark() {
         cm[x] === quinSelector[x].out;
     }
 
-    component hash2 = Sha256(HASH_LENGTH * 3);
-
-    //check for cm2 if it exists
-    for (var i = 0; i < HASH_LENGTH; i++) {
-        hash2.in[i] <== hashValue[i];
-        hash2.in[i + HASH_LENGTH] <== k[i];
-        hash2.in[i + HASH_LENGTH + HASH_LENGTH] <== s[i];
-    }
-    
-    // Check if cm of spending coin is in the cmLedger
-    for (var i = 0; i < HASH_LENGTH; i++) {
-        temp[i] <== (hash2.out[i] * (1 - run));
-        hash2.out[i] === (cm[i]*run) + temp[i];
-    }
-
 }
-component main {public [cmLedger, cmLedgerSize, hashValue, sn]}= VerifySpartanDark();
+component main {public [cmLedger, cmLedgerSize, snOld]}= VerifySpartanDark();

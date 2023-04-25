@@ -186,7 +186,8 @@ class SpartanDarkClient extends Client {
     let rhoOld = oldSpartanDark.rho;
     // get addrSK of old coin
     let addrSKOld = this.addressBindings[oldSpartanDark.addrPK];
-    let snOld = SpartanDarkUtils.prf(rhoOld, addrSKOld);
+    let addrSKBuffer = Buffer.from(addrSKOld).slice(0, 2);
+    let snOld = SpartanDarkUtils.prf(addrSKBuffer,oldSpartanDark.cm);
     //let recvAddr = receiver.address;
 
     // the amount the spender needs to get back after spending the requd amount
@@ -201,16 +202,9 @@ class SpartanDarkClient extends Client {
       this.SpartanDarks,
       coinChange
     );
-    // console.log("After getting back change: ");
-    // console.log(this.SpartanDarks);
-    // console.log("\n\n");
     this.SpartanDarks.sort(SpartanDarkUtils.OrderSpartanDark);
 
     const sigKeys = SpartanDarkUtils.generateKeypair();
-    let pkSig = sigKeys.public;
-    let skSig = sigKeys.private;
-    let hSig = SpartanDarkUtils.hash(pkSig);
-    //let h_ = SpartanDarkUtils.prf(hSig, SpartanDarkUtils.PK, addrSKOld);
     let cmOldInBase64 = oldSpartanDark.cm.toString('base64');
     let cmLedger = this.lastConfirmedBlock.cmLedger;
     let cmOldPositionInLedger = cmLedger.findIndex((x) => x === cmOldInBase64);
@@ -231,6 +225,7 @@ class SpartanDarkClient extends Client {
     for(let i=0; i < paddingBits; i++){
       cmLedgerArray.push(0);
     }
+
     //let cmLedgerArray = SpartanDarkUtils.bufferToBitArray(bufferCmLedger);
     let circuitInput = {
       k: SpartanDarkUtils.bufferToBitArray(
@@ -250,8 +245,11 @@ class SpartanDarkClient extends Client {
       v1New : coinToSpend.v,
       v2New : coinChange.v,
       vOld : oldSpartanDark.v,
-      run : 1,
-      cm2 : SpartanDarkUtils.bufferToBitArray(Buffer.alloc(SpartanDarkUtils.BYTE_SIZE))
+      snOld : SpartanDarkUtils.bufferToBitArray(snOld),
+      //rhoOld : SpartanDarkUtils.bufferToBitArray(oldSpartanDark.cm),
+      addrSK : SpartanDarkUtils.bufferToBitArray(addrSKBuffer),
+      //run : 1,
+      //cm2 : SpartanDarkUtils.bufferToBitArray(Buffer.alloc(SpartanDarkUtils.BYTE_SIZE))
 
     };
 
@@ -445,16 +443,6 @@ class SpartanDarkClient extends Client {
     this.addressBindings[this.keyPair.public] = this.keyPair.private;
   }
 
-  //generateEncDecKeyPair() {
-    // let encDecKeyPair = SpartanDarkUtils.generateKeypair();
-    // this.pubEncKey = encDecKeyPair.public;
-    // // DESIGNDEC: marking private decryption key as private using '#'
-    // this.#privDecKey = encDecKeyPair.private;
-    // // console.log("Pub priv enc dec keys");
-    // // console.log(this.pubEncKey);
-    // // console.log(this.#privDecKey);
-    // // console.log();
-  //}
 }
 
 module.exports.SpartanDarkClient = SpartanDarkClient;

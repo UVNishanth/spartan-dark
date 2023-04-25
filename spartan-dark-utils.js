@@ -82,10 +82,10 @@ let comm = (x, rho, r) => {
 //   }
 // };
 
-module.exports.prf = (rho, addr) => {
-  rho = Buffer.isBuffer(rho) ? rho : Buffer.from(rho);
+module.exports.prf = (addr, cm) => {
+  cm = Buffer.isBuffer(cm) ? cm : Buffer.from(cm);
   addr = Buffer.isBuffer(addr) ? addr : Buffer.from(addr);
-  let s = Buffer.concat([rho, addr]);
+  let s = Buffer.concat([addr, cm]);
   return hash(s);
 
 };
