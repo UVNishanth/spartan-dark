@@ -19,7 +19,7 @@ const { TranPour } = require("./spartan-dark-tran-pour.js");
  * A SpartanDarkClient is capable of minting coins and sending/receiving minted coins
  */
 class SpartanDarkClient extends Client {
-  #rho;
+  #salt;
   #addrSK;
   #privDecKey;
   //CITE: spartan-gold's Client class description
@@ -252,7 +252,7 @@ class SpartanDarkClient extends Client {
       snOld : SpartanDarkUtils.bufferToBitArray(snOld),
       //rhoOld : SpartanDarkUtils.bufferToBitArray(oldSpartanDark.cm),
       addrSK : SpartanDarkUtils.bufferToBitArray(this.#addrSK),
-      rho : SpartanDarkUtils.bufferToBitArray(this.#rho),
+      rho : SpartanDarkUtils.bufferToBitArray(this.#salt),
       addrPK : SpartanDarkUtils.bufferToBitArray(this.addrPK)
       //run : 1,
       //cm2 : SpartanDarkUtils.bufferToBitArray(Buffer.alloc(SpartanDarkUtils.BYTE_SIZE))
@@ -454,10 +454,10 @@ class SpartanDarkClient extends Client {
   generateNewAddress() {
     this.keyPair = SpartanDarkUtils.generateKeypair();
     this.address = SpartanDarkUtils.calcAddress(this.keyPair.public);
-    this.#rho = Buffer.from(SpartanDarkUtils.getRandNum());
+    this.#salt = Buffer.from(SpartanDarkUtils.getRandNum());
     this.#addrSK = Buffer.from(this.keyPair.private).slice(0, 2)
     //let addrPKBuffer = Buffer.from(this.addrPK).slice(0, 2);
-    this.addrPK = SpartanDarkUtils.prf(this.#addrSK,this.#rho);
+    this.addrPK = SpartanDarkUtils.prf(this.#addrSK,this.#salt);
     this.addressBindings[this.addrPK] = this.addrSK;
   }
 
