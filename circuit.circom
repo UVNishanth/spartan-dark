@@ -35,14 +35,14 @@ template VerifySpartanDark() {
     vOld === v1New + v2New;
 
     //Check if addrSK is well formed
-    component hashSK = Sha256(HASH_LENGTH * 2);
+    component hashPK = Sha256(HASH_LENGTH * 2);
     for (var i = 0; i < HASH_LENGTH; i++) {
-        hashSK.in[i] <== addrPK[i];
-        hashSK.in[i + HASH_LENGTH] <== rho[i];
+        hashPK.in[i] <== addrSK[i];
+        hashPK.in[i + HASH_LENGTH] <== rho[i];
     }
     
     for (var i = 0; i < HASH_LENGTH; i++) {
-        hashSK.out[i] === addrSK[i];
+        hashPK.out[i] === addrPK[i];
     }
 
     // Check if sn is well formed

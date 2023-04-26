@@ -443,10 +443,10 @@ class SpartanDarkClient extends Client {
     this.keyPair = SpartanDarkUtils.generateKeypair();
     this.address = SpartanDarkUtils.calcAddress(this.keyPair.public);
     this.#rho = Buffer.from(SpartanDarkUtils.getRandNum());
-    this.addrPK = Buffer.from(this.keyPair.public).slice(0, 2)
+    this.#addrSK = Buffer.from(this.keyPair.private).slice(0, 2)
     //let addrPKBuffer = Buffer.from(this.addrPK).slice(0, 2);
-    this.#addrSK = SpartanDarkUtils.prf(this.addrPK,this.#rho);
-    this.addressBindings[this.addrPK] = this.addrSK;
+    this.addrPK = SpartanDarkUtils.prf(this.#addrSK,this.#rho);
+    this.addressBindings[this.addrPK] = this.#addrSK;
   }
 
 }
