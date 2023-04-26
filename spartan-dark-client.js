@@ -19,7 +19,8 @@ const { TranPour } = require("./spartan-dark-tran-pour.js");
  * A SpartanDarkClient is capable of minting coins and sending/receiving minted coins
  */
 class SpartanDarkClient extends Client {
-  #privDecKey;
+  #rho;
+  #addrSK;
   //CITE: spartan-gold's Client class description
   /**
    * The net object determines how the client communicates
@@ -183,11 +184,11 @@ class SpartanDarkClient extends Client {
       return coin.cm !== oldSpartanDark.cm;
     });
 
-    let rhoOld = oldSpartanDark.rho;
+    //let rhoOld = oldSpartanDark.rho;
     // get addrSK of old coin
-    let addrSKOld = this.addressBindings[oldSpartanDark.addrPK];
-    let addrSKBuffer = Buffer.from(addrSKOld).slice(0, 2);
-    let snOld = SpartanDarkUtils.prf(addrSKBuffer,oldSpartanDark.cm);
+    //let addrSKOld = this.addressBindings[oldSpartanDark.addrPK];
+    //let addrSKBuffer = Buffer.from(addrSKOld).slice(0, 2);
+    let snOld = SpartanDarkUtils.prf(this.#addrSK,oldSpartanDark.cm);
     //let recvAddr = receiver.address;
 
     // the amount the spender needs to get back after spending the requd amount
@@ -247,7 +248,9 @@ class SpartanDarkClient extends Client {
       vOld : oldSpartanDark.v,
       snOld : SpartanDarkUtils.bufferToBitArray(snOld),
       //rhoOld : SpartanDarkUtils.bufferToBitArray(oldSpartanDark.cm),
-      addrSK : SpartanDarkUtils.bufferToBitArray(addrSKBuffer),
+      addrSK : SpartanDarkUtils.bufferToBitArray(this.#addrSK),
+      rho : SpartanDarkUtils.bufferToBitArray(this.#rho),
+      addrPK : SpartanDarkUtils.bufferToBitArray(this.addrPK)
       //run : 1,
       //cm2 : SpartanDarkUtils.bufferToBitArray(Buffer.alloc(SpartanDarkUtils.BYTE_SIZE))
 
@@ -439,8 +442,11 @@ class SpartanDarkClient extends Client {
   generateNewAddress() {
     this.keyPair = SpartanDarkUtils.generateKeypair();
     this.address = SpartanDarkUtils.calcAddress(this.keyPair.public);
-    this.addrPK = this.keyPair.public;
-    this.addressBindings[this.keyPair.public] = this.keyPair.private;
+    this.#rho = Buffer.from(SpartanDarkUtils.getRandNum());
+    this.addrPK = Buffer.from(this.keyPair.public).slice(0, 2)
+    //let addrPKBuffer = Buffer.from(this.addrPK).slice(0, 2);
+    this.#addrSK = SpartanDarkUtils.prf(this.addrPK,this.#rho);
+    this.addressBindings[this.addrPK] = this.addrSK;
   }
 
 }

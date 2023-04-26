@@ -24,12 +24,26 @@ template VerifySpartanDark() {
     signal input v2New;
     signal input vOld;
 
+    signal input rho[HASH_LENGTH];
+    signal input addrPK[HASH_LENGTH];
+
     signal input snOld[HASH_LENGTH];
     signal input addrSK[HASH_LENGTH];
     //signal input rhoOld[HASH_LENGTH];
 
     // Check if value of new coins match that of the old coin
     vOld === v1New + v2New;
+
+    //Check if addrSK is well formed
+    component hashSK = Sha256(HASH_LENGTH * 2);
+    for (var i = 0; i < HASH_LENGTH; i++) {
+        hashSK.in[i] <== addrPK[i];
+        hashSK.in[i + HASH_LENGTH] <== rho[i];
+    }
+    
+    for (var i = 0; i < HASH_LENGTH; i++) {
+        hashSK.out[i] === addrSK[i];
+    }
 
     // Check if sn is well formed
     component hashSN = Sha256(HASH_LENGTH * 2);
@@ -71,4 +85,4 @@ template VerifySpartanDark() {
     }
 
 }
-component main {public [cmLedger, cmLedgerSize, snOld]}= VerifySpartanDark();
+component main {public [cmLedger, cmLedgerSize, snOld, addrPK]}= VerifySpartanDark();
