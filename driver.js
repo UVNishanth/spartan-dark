@@ -123,12 +123,6 @@ setTimeout(() => {
  */
 //}
 
-/** iter: 2
- * alice: 28 + 7 = 35 + 5 = 40 + 20 = 60 - 4 = 56
- * charlie: 6 + 11 = 17 - 5 = 12
- * bob: 34 + 50 = 84 - 20 = 64 + 4 = 68
- */
-
 //ASK: too large a timeout. Ask how to trigger after spend is done.
 //FLAW: the timeout increases with the amount of spending added due to the time the proving method takes
 setTimeout(() => {
@@ -141,13 +135,13 @@ setTimeout(() => {
   );
   console.log("Final balances:");
   console.log("Alice now has coins of total value: " + alice.getBalance());
-  console.log("Alice wallet: ");
+  //console.log("Alice wallet: ");
   //console.log(alice.SpartanDarks);
   console.log("Charlie now has coins of total value: " + charlie.getBalance());
-  console.log("Charlie wallet: ");
+  //console.log("Charlie wallet: ");
   //console.log(charlie.SpartanDarks);
   console.log("Bob now has coins of total value: " + bob.getBalance());
-  console.log("Bob wallet: ");
+  //console.log("Bob wallet: ");
   //console.log(bob.SpartanDarks);
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});

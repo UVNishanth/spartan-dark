@@ -16,3 +16,6 @@ pot15_final.ptau
 spartan-dark-transaction.js
 circuit_exp.circom
 prepare_circuit_time_map.py
+circuit.wasm
+circuit_final.zkey
+verification_key.json

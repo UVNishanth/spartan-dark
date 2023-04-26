@@ -21,6 +21,7 @@ const { TranPour } = require("./spartan-dark-tran-pour.js");
 class SpartanDarkClient extends Client {
   #rho;
   #addrSK;
+  #privDecKey;
   //CITE: spartan-gold's Client class description
   /**
    * The net object determines how the client communicates
@@ -50,6 +51,8 @@ class SpartanDarkClient extends Client {
     this.addressBindings = {};
 
     this.generateNewAddress();
+
+    this.generateEncDecKeys();
 
     //this.generateEncDecKeyPair();
   }
@@ -280,13 +283,20 @@ class SpartanDarkClient extends Client {
 
     //Send notification to receiver to check for pour transaction on the ledger
     //DESIGNDEC: Sending coin alongwith notification so that the receiver can only check if the pourT id sent is present on the ledger and if yes, put that coin in its wallet. So our enc dec logic becomes redundant as the receiver already has the coin and does not need to decrypt anything from the pour transaction. Simplifying the actual logic of zerocash
+    let coinBuffer = coinToSpend.toBuffer();
+    let coinEnc = SpartanDarkUtils.encrypt(receiver.pubEncKey, coinBuffer);
+    // this.net.sendMessage(
+    //   receiver.address,
+    //   SpartanDarkBlockchain.RECEIVE_TRANSACTION,
+    //   {
+    //     cm: Buffer.from(coinToSpend.cm),
+    //     coin: coinToSpend,
+    //   }
+    // );
     this.net.sendMessage(
       receiver.address,
       SpartanDarkBlockchain.RECEIVE_TRANSACTION,
-      {
-        cm: Buffer.from(coinToSpend.cm),
-        coin: coinToSpend,
-      }
+      coinEnc
     );
     let endTime = performance.now();
     console.log(`Execution Time for Spend in milliseconds is: ${endTime - startTime} milliseconds`);
@@ -310,8 +320,10 @@ class SpartanDarkClient extends Client {
 
   async receiveTransaction(msgInfo) {
     let startTime = performance.now();
-    let coin = msgInfo.coin;
-    let cm = msgInfo.cm;
+    //let coin = msgInfo.coin;
+    let coinBuffer = SpartanDarkUtils.decrypt(this.#privDecKey, Buffer.from(msgInfo));
+    let coin = SpartanDarkUtils.bufferToSpartanDark(coinBuffer);
+    let cm = coin.cm;
     //DESIGNDEC: even tho receieveTransation is triggered immediately after spender spends the coin, due to latency of proof generation, the coin might not be on the ledger immediately. So we run the findcoin function (inside the setIntervals) periodically till the coin is found. Can add a timeout to let the reciever know that spender's transaction has been invalidated (easy way to implement is to keep a cmRejectedLedger in block and also check lastblock's cmRejectedLedger to see if the coin was rejected)
     let timerId = setInterval(() => {
       if (this.checkIfCmInLedger(cm)) {
@@ -447,6 +459,12 @@ class SpartanDarkClient extends Client {
     //let addrPKBuffer = Buffer.from(this.addrPK).slice(0, 2);
     this.addrPK = SpartanDarkUtils.prf(this.#addrSK,this.#rho);
     this.addressBindings[this.addrPK] = this.addrSK;
+  }
+
+  generateEncDecKeys(){
+    let encDecKeyPair = SpartanDarkUtils.generateKeypair();
+    this.pubEncKey = encDecKeyPair.public;
+    this.#privDecKey = encDecKeyPair.private;
   }
 
 }
