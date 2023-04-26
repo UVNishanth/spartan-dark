@@ -136,6 +136,23 @@ module.exports.createNewSpartanDark = (owner, value) => {
   return new SpartanDark(owner.addrPK, value, hashValue, rho, r, s, cm, k);
 };
 
+/**
+ * 
+ * @param {Buffer} buffer 
+ */
+module.exports.bufferToSpartanDark = (buffer) => {
+  let addrPK = buffer.slice(0,2);
+  let cm = buffer.slice(2,4);
+  let hashedV = buffer.slice(4,6);
+  let k = buffer.slice(6,8); 
+  let r = buffer.slice(8,10);
+  let rho = buffer.slice(10,12);
+  let s = buffer.slice(12,14);
+  let vArray = [...buffer.slice(14,16)];
+  let v = vArray[1] + (vArray[0] << 8);
+  return [addrPK, cm, hashedV, k, r, rho, s, v];
+};
+
 //DESIGNDEC: Writing own hash func coz spartan-gold's hash() creates a a hash digest of size 512 bits, while we have standardized 256-bit hashes for ease of use in circuits
 let hash = (s) => {
   let res = crypto.createHash("sha256").update(s).digest();

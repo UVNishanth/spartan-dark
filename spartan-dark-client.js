@@ -446,7 +446,7 @@ class SpartanDarkClient extends Client {
     this.#addrSK = Buffer.from(this.keyPair.private).slice(0, 2)
     //let addrPKBuffer = Buffer.from(this.addrPK).slice(0, 2);
     this.addrPK = SpartanDarkUtils.prf(this.#addrSK,this.#rho);
-    this.addressBindings[this.addrPK] = this.#addrSK;
+    this.addressBindings[this.addrPK] = this.addrSK;
   }
 
 }
