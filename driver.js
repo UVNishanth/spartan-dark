@@ -146,4 +146,4 @@ setTimeout(() => {
   //alice.getBalance().then((balance) => {console.log("Alice now has coins of total value: "+balance);});
   //charlie.getBalance().then((balance) => {console.log("Charlie now has coins of total value: "+balance);});
   process.exit(0);
-}, 65000);
+}, 70000);
